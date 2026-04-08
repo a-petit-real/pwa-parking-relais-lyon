@@ -8,11 +8,10 @@
   <style>
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, sans-serif;
       background: #f3f4f6;
       color: #0f172a;
     }
-
     header {
       background: #0f172a;
       color: white;
@@ -20,30 +19,18 @@
       text-align: center;
       font-weight: 600;
     }
-
-    #list {
-      padding: 1rem;
-    }
-
     .parking {
       background: white;
-      border-radius: 8px;
+      margin: 1rem;
       padding: 1rem;
-      margin-bottom: 0.75rem;
+      border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
-
     .ok   { border-left: 6px solid #15803d; }
     .warn { border-left: 6px solid #c2410c; }
     .full { border-left: 6px solid #b91c1c; }
-
     .name {
       font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .info {
-      font-size: 0.95rem;
     }
   </style>
 </head>
@@ -51,56 +38,45 @@
 <body>
 
 <header>Parkings relais TCL – LIVE</header>
-
 <div id="list">Chargement…</div>
 
 <script>
 (async function () {
-  const container = document.getElementById("list");
+  const list = document.getElementById("list");
 
-  try {
-    const response = await fetch("/api/parkings-relais");
-    const payload = await response.json();
+  const res = await fetch("/api/parkings-relais");
+  const payload = await res.json();
 
-    console.log("RAW DATA:", payload);
+  console.log("RAW DATA:", payload);
 
-    // ✅ DONNÉES RÉELLES CONFIRMÉES
-    const parkings = payload.data;
+  const parkings = payload.data;
 
-    if (!parkings || parkings.length === 0) {
-      container.textContent = "Aucun parking disponible";
-      return;
-    }
-
-    let html = "";
-
-    for (const p of parkings) {
-      const nom = p.nom;
-      const capacite = p.capacite;
-      const placesLibres = capacite - (p.place_hand ?? 0);
-
-      const taux = placesLibres / capacite;
-
-      let cls = "ok";
-      if (taux < 0.2) cls = "full";
-      else if (taux < 0.5) cls = "warn";
-
-      html += `
-        <div class="parking ${cls}">
-          <div class="name">${nom}</div>
-          <div class="info">
-            ${placesLibres} places libres / ${capacite}
-          </div>
-        </div>
-      `;
-    }
-
-    container.innerHTML = html;
-
-  } catch (err) {
-    console.error(err);
-    container.textContent = "Erreur de chargement des données";
+  // ✅ CONDITION ROBUSTE
+  if (!parkings || !parkings[0]) {
+    list.textContent = "Aucun parking disponible";
+    return;
   }
+
+  let html = "";
+
+  for (const p of parkings) {
+    const capacite = p.capacite;
+    const libres = capacite - (p.place_hand ?? 0);
+    const taux = libres / capacite;
+
+    let cls = "ok";
+    if (taux < 0.2) cls = "full";
+    else if (taux < 0.5) cls = "warn";
+
+    html += `
+      <div class="parking ${cls}">
+        <div class="name">${p.nom}</div>
+        <div>${libres} places libres / ${capacite}</div>
+      </div>
+    `;
+  }
+
+  list.innerHTML = html;
 })();
 </script>
 
