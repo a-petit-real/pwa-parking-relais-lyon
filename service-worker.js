@@ -1,21 +1,15 @@
-const CACHE_NAME = "pwa-parking-relais-v1";
-const URLS = [
-  "/",
-  "/index.html",
-  "/manifest.json"
-];
+const CACHE = "pwa-parking-relais-v1";
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS))
-  );
-});
-
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request)
+self.addEventListener("install", evt => {
+  evt.waitUntil(
+    caches.open(CACHE).then(c =>
+      c.addAll(["/", "/index.html", "/manifest.json"])
     )
   );
 });
-``
+
+self.addEventListener("fetch", evt => {
+  evt.respondWith(
+    fetch(evt.request).catch(() => caches.match(evt.request))
+  );
+});

@@ -12,3 +12,13 @@ au portail data.grandlyon.com mais ne suffit PAS pour accéder aux API Datapushe
 2. Utiliser la fonction "Mot de passe oublié" spécifique au portail data
 3. Définir un mot de passe propre à data.grandlyon.com
 4. Utiliser cet email + mot de passe pour l’authentification Basic Auth
+
+
+# PWA Parkings Relais Lyon
+
+PWA personnelle affichant en temps réel la disponibilité des parkings relais TCL,
+basée sur les données open data de la Métropole de Lyon.
+
+- Backend serverless Vercel
+- API Datapusher Grand Lyon
+- Frontend PWA vanilla JS
