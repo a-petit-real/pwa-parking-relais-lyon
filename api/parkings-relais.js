@@ -20,23 +20,11 @@ export default async function handler(req, res) {
       }
     });
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "Erreur API Grand Lyon",
-        status: response.status
-      });
-    }
-
-    const data = await response.json();
-
-    // 🔴 IMPORTANT :
-    // L’API renvoie un TABLEAU D’OBJETS (confirmé par ta console)
-    return res.status(200).json(data);
+    const json = await response.json();
+    return res.status(200).json(json);
 
   } catch (e) {
-    return res.status(500).json({
-      error: "Erreur proxy",
-      details: e.message
-    });
+    return res.status(500).json({ error: e.message });
   }
 }
+``

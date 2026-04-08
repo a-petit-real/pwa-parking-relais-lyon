@@ -17,6 +17,7 @@
       color: white;
       padding: 1rem;
       text-align: center;
+      font-weight: 600;
     }
     .parking {
       background: white;
@@ -34,7 +35,6 @@
 <body>
 
 <header>Parkings relais TCL – LIVE</header>
-
 <div id="list">Chargement…</div>
 
 <script>
@@ -42,12 +42,12 @@ async function load() {
   const list = document.getElementById("list");
 
   const res = await fetch("/api/parkings-relais");
-  const data = await res.json();
+  const payload = await res.json();
 
-  console.log("RAW DATA:", data);
+  console.log("RAW DATA:", payload);
 
-  // ✅ EXTRACTION CORRECTE
-  const parkings = Array.isArray(data?.data) ? data.data : [];
+  // ✅ UNIQUE STRUCTURE VALIDE (confirmée par ta console)
+  const parkings = Array.isArray(payload.data) ? payload.data : [];
 
   list.innerHTML = "";
 
@@ -57,7 +57,6 @@ async function load() {
     const placesLibres = capacite - (p.place_hand ?? 0);
 
     const taux = placesLibres / capacite;
-
     let cls = "ok";
     if (taux < 0.2) cls = "full";
     else if (taux < 0.5) cls = "warn";
@@ -76,4 +75,3 @@ load();
 
 </body>
 </html>
-``
