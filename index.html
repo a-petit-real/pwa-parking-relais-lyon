@@ -76,6 +76,9 @@
 
       const data = await res.json();
 
+console.log("FIELDS:", data.fields);
+console.log("FIRST ROW:", data.values?.[0]);
+
       const list = document.getElementById("list");
       list.innerHTML = "";
 
