@@ -1,14 +1,10 @@
 {
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
-    { "src": "manifest.json", "use": "@vercel/static" },
-    { "src": "service-worker.js", "use": "@vercel/static" },
     { "src": "api/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "^/api/(.*)$", "dest": "/api/$1.js" },
-    { "src": "^/manifest.json$", "dest": "/manifest.json" },
-    { "src": "^/service-worker.js$", "dest": "/service-worker.js" },
     { "src": "^/$", "dest": "/index.html" }
   ]
 }

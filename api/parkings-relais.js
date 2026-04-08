@@ -29,12 +29,13 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    res.setHeader("Cache-Control", "s-maxage=60");
+    // 🔴 IMPORTANT :
+    // L’API renvoie un TABLEAU D’OBJETS (confirmé par ta console)
     return res.status(200).json(data);
 
   } catch (e) {
     return res.status(500).json({
-      error: "Erreur interne proxy",
+      error: "Erreur proxy",
       details: e.message
     });
   }
