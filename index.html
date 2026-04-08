@@ -26,19 +26,20 @@
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    .ok { color: green; }
-    .warn { color: orange; }
-    .full { color: red; }
+    .ok { color: #15803d; }
+    .warn { color: #c2410c; }
+    .full { color: #b91c1c; }
   </style>
 </head>
 
 <body>
 
 <header>Parkings relais TCL – LIVE</header>
+
 <div id="list">Chargement…</div>
 
 <script>
-async function load() {
+(async function () {
   const list = document.getElementById("list");
 
   const res = await fetch("/api/parkings-relais");
@@ -46,39 +47,34 @@ async function load() {
 
   console.log("RAW DATA:", payload);
 
-  // ✅ STRUCTURE CONFIRMÉE PAR TES LOGS
   const parkings = Array.isArray(payload.data) ? payload.data : [];
 
-  list.innerHTML = "";
+  if (parkings.length === 0) {
+    list.textContent = "Aucun parking disponible";
+    return;
+  }
 
-  parkings.forEach(p => {
-    const nom = p.nom;
-    const capacite = p.capacite;
-    const libres = capacite - (p.place_hand ?? 0);
+  // ✅ RENDU EN UNE SEULE PASSE (clé du déblocage)
+  let html = "";
 
-    const taux = libres / capacite;
+  for (const p of parkings) {
+    const libres = p.capacite - (p.place_hand ?? 0);
+    const taux = libres / p.capacite;
+
     let cls = "ok";
     if (taux < 0.2) cls = "full";
     else if (taux < 0.5) cls = "warn";
 
-    const div = document.createElement("div");
-    div.className = "parking " + cls;
+    html += `
+      <div class="parking ${cls}">
+        <strong>${p.nom}</strong><br/>
+        ${libres} places libres / ${p.capacite}
+      </div>
+    `;
+  }
 
-    const title = document.createElement("strong");
-    title.textContent = nom;
-
-    const info = document.createElement("div");
-    info.textContent = `${libres} places libres / ${capacite}`;
-
-    div.appendChild(title);
-    div.appendChild(document.createElement("br"));
-    div.appendChild(info);
-
-    list.appendChild(div);
-  });
-}
-
-load();
+  list.innerHTML = html;
+})();
 </script>
 
 </body>
