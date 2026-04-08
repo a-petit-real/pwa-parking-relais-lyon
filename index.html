@@ -69,28 +69,36 @@
   async function loadParkings() {
     try {
       const res = await fetch("/api/parkings-relais");
+
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
+      }
+
       const data = await res.json();
 
       const list = document.getElementById("list");
       list.innerHTML = "";
 
-      // ✅ Datapusher Grand Lyon → data.values
-      const records = data.values || [];
+      // ✅ Datapusher structure
+      const fields = data.fields || [];
+      const values = data.values || [];
 
-      if (!records.length) {
-        list.innerHTML = "Aucune donnée disponible.";
+      if (!fields.length || !values.length) {
+        list.textContent = "Aucune donnée disponible.";
         return;
       }
 
-      records.forEach(row => {
-        /*
-          ⚠️ Index des colonnes :
-          À ajuster si besoin selon ton JSON réel
-          (mais les 3 suivants sont les bons pour les P+R)
-        */
-        const nom = row[1];               // nom du parking
-        const capacite = row[4];          // capacité totale
-        const disponibles = row[5];       // places libres
+      // ✅ Mapping dynamique des colonnes
+      const idxNom = fields.indexOf("nom");
+      const idxCap = fields.indexOf("capacite");
+      const idxDispo = fields.indexOf("places_disponibles");
+
+      values.forEach(row => {
+        const nom = row[idxNom];
+        const capacite = row[idxCap];
+        const disponibles = row[idxDispo];
+
+        if (!nom || capacite == null || disponibles == null) return;
 
         const taux = capacite > 0 ? disponibles / capacite : 0;
 
@@ -116,7 +124,7 @@
     } catch (err) {
       document.getElementById("list").textContent =
         "Erreur de chargement des données.";
-      console.error(err);
+      console.error("PWA error:", err);
     }
   }
 
