@@ -78,31 +78,40 @@
       const list = document.getElementById("list");
       list.innerHTML = "";
 
-      if (!Array.isArray(data) || data.length === 0) {
-        list.textContent = "Aucune donnée disponible.";
-        return;
-      }
+      
+// ✅ Compatibilité toutes formes de réponse
+const parkings = Array.isArray(data)
+  ? data
+  : Array.isArray(data.data)
+    ? data.data
+    : [];
 
-      data.forEach(p => {
-        const nom = p.nom;
-        const capacite = p.capacite;
-        const disponibles = capacite - (p.place_hand ?? 0);
+if (parkings.length === 0) {
+  list.textContent = "Aucune donnée disponible.";
+  return;
+}
 
-        let cls = "ok";
-        const taux = capacite > 0 ? disponibles / capacite : 0;
-        if (taux < 0.2) cls = "full";
-        else if (taux < 0.5) cls = "warn";
+parkings.forEach(p => {
+  const nom = p.nom;
+  const capacite = p.capacite;
+  const disponibles = capacite - (p.place_hand ?? 0);
 
-        const div = document.createElement("div");
-        div.className = "parking";
-        div.innerHTML = `
-          <div class="title">${nom}</div>
-          <div class="status ${cls}">
-            ${disponibles} places disponibles / ${capacite}
-          </div>
-        `;
-        list.appendChild(div);
-      });
+  let cls = "ok";
+  const taux = capacite > 0 ? disponibles / capacite : 0;
+  if (taux < 0.2) cls = "full";
+  else if (taux < 0.5) cls = "warn";
+
+  const div = document.createElement("div");
+  div.className = "parking";
+  div.innerHTML = `
+    <div class="title">${nom}</div>
+    <div class="status ${cls}">
+      ${disponibles} places disponibles / ${capacite}
+    </div>
+  `;
+  list.appendChild(div);
+});
+
 
       document.getElementById("updated").textContent =
         "Mise à jour : " + new Date().toLocaleTimeString();
