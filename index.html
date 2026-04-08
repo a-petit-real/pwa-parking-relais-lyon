@@ -29,6 +29,9 @@
     .ok   { border-left: 6px solid #15803d; }
     .warn { border-left: 6px solid #c2410c; }
     .full { border-left: 6px solid #b91c1c; }
+    .name {
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -46,11 +49,10 @@
 
   console.log("RAW DATA:", payload);
 
-  // ✅ structure réelle confirmée
-  const parkings = payload.data;
+  // ✅ C'EST ICI LA VRAIE DONNÉE
+  const parkings = payload.values;
 
-  // ✅ condition robuste
-  if (!parkings || !parkings[0]) {
+  if (!parkings || parkings.length === 0) {
     container.textContent = "Aucun parking disponible";
     return;
   }
@@ -68,8 +70,8 @@
 
     html += `
       <div class="parking ${cls}">
-        <strong>${p.nom}</strong><br/>
-        ${libres} places libres / ${capacite}
+        <div class="name">${p.nom}</div>
+        <div>${libres} places libres / ${capacite}</div>
       </div>
     `;
   }
@@ -80,4 +82,3 @@
 
 </body>
 </html>
-``
