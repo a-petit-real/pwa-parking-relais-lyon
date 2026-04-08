@@ -61,7 +61,7 @@
 
   for (const p of parkings) {
     const capacite = p.capacite;
-    const libres = capacite - (p.place_hand ?? 0);
+    const libres = p.nb_tot_place_dispo;
     const taux = libres / capacite;
 
     let cls = "ok";
