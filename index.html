@@ -3,18 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>Parkings relais TCL – temps réel</title>
-
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#0f172a" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
 
   <style>
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, sans-serif;
       background: #f8fafc;
       color: #0f172a;
     }
@@ -30,101 +24,57 @@
     }
     .parking {
       background: white;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 1rem;
       margin-bottom: 0.75rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    .title {
-      font-weight: 600;
-    }
-    .status {
-      margin-top: 0.25rem;
-      font-weight: 500;
-    }
-    .ok { color: #15803d; }
-    .warn { color: #c2410c; }
-    .full { color: #b91c1c; }
-    .updated {
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      color: #475569;
-      text-align: center;
-    }
+    .ok { color: green; }
+    .warn { color: orange; }
+    .full { color: red; }
   </style>
 </head>
 
 <body>
   <header>Parkings relais TCL – temps réel</header>
-
   <div class="container" id="list">Chargement…</div>
-  <div class="updated" id="updated"></div>
 
 <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
-  }
+async function load() {
+  const list = document.getElementById("list");
 
-  async function loadParkings() {
-    try {
-      const res = await fetch("/api/parkings-relais");
-      if (!res.ok) throw new Error("HTTP " + res.status);
+  const res = await fetch("/api/parkings-relais");
+  const data = await res.json();
 
-      const data = await res.json();
+  console.log("DATA:", data);
 
-      const list = document.getElementById("list");
-      list.innerHTML = "";
+  const parkings = Array.isArray(data)
+    ? data
+    : Array.isArray(data.data)
+      ? data.data
+      : [];
 
-      // ✅ Extraction universelle (tous cas rencontrés)
-      const parkings =
-        Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data)
-            ? data.data
-            : Array.isArray(data?.values)
-              ? data.values
-              : Array.isArray(data?.features)
-                ? data.features.map(f => f.properties || f)
-                : [];
+  list.innerHTML = "";
 
-      if (parkings.length === 0) {
-        list.textContent = "Aucune donnée disponible.";
-        return;
-      }
+  parkings.forEach(p => {
+    const dispo = p.capacite - (p.place_hand ?? 0);
+    const taux = dispo / p.capacite;
 
-      parkings.forEach(p => {
-        const nom = p.nom;
-        const capacite = p.capacite;
-        const disponibles =
-          p.places_libres ??
-          p.places_disponibles ??
-          (capacite - (p.place_hand ?? 0));
+    let cls = "ok";
+    if (taux < 0.2) cls = "full";
+    else if (taux < 0.5) cls = "warn";
 
-        if (!nom || capacite == null || disponibles == null) return;
+    list.innerHTML += `
+      <div class="parking ${cls}">
+        <strong>${p.nom}</strong><br/>
+        ${dispo} places libres / ${p.capacite}
+      </div>
+    `;
+  });
+}
 
-        const taux = capacite > 0 ? disponibles / capacite : 0;
-        let cls = "ok";
-        if (taux < 0.2) cls = "full";
-        else if (taux < 0.5) cls = "warn";
+load();
+</script>
 
-        const div = document.createElement("div");
-        div.className = "parking";
-        div.innerHTML = `
-          <div class="title">${nom}</div>
-          <div class="status ${cls}">
-            ${disponibles} places disponibles / ${capacite}
-          </div>
-        `;
-        list.appendChild(div);
-      });
-
-      document.getElementById("updated").textContent =
-        "Mise à jour : " + new Date().toLocaleTimeString();
-
-    } catch (e) {
-      document.getElementById("list").textContent =
-        "Erreur de chargement des données.";
-      console.error(e);
-    }
-  }
-
+</body>
+</html>
