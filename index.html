@@ -46,7 +46,7 @@ async function load() {
 
   console.log("RAW DATA:", payload);
 
-  // ✅ UNIQUE STRUCTURE VALIDE (confirmée par ta console)
+  // ✅ STRUCTURE CONFIRMÉE PAR TES LOGS
   const parkings = Array.isArray(payload.data) ? payload.data : [];
 
   list.innerHTML = "";
@@ -54,19 +54,27 @@ async function load() {
   parkings.forEach(p => {
     const nom = p.nom;
     const capacite = p.capacite;
-    const placesLibres = capacite - (p.place_hand ?? 0);
+    const libres = capacite - (p.place_hand ?? 0);
 
-    const taux = placesLibres / capacite;
+    const taux = libres / capacite;
     let cls = "ok";
     if (taux < 0.2) cls = "full";
     else if (taux < 0.5) cls = "warn";
 
-    list.innerHTML += `
-      <div class="parking ${cls}">
-        <strong>${nom}</strong><br/>
-        ${placesLibres} places libres / ${capacite}
-      </div>
-    `;
+    const div = document.createElement("div");
+    div.className = "parking " + cls;
+
+    const title = document.createElement("strong");
+    title.textContent = nom;
+
+    const info = document.createElement("div");
+    info.textContent = `${libres} places libres / ${capacite}`;
+
+    div.appendChild(title);
+    div.appendChild(document.createElement("br"));
+    div.appendChild(info);
+
+    list.appendChild(div);
   });
 }
 
