@@ -8,10 +8,11 @@
   <style>
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #f8fafc;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f4f6;
       color: #0f172a;
     }
+
     header {
       background: #0f172a;
       color: white;
@@ -19,16 +20,31 @@
       text-align: center;
       font-weight: 600;
     }
+
+    #list {
+      padding: 1rem;
+    }
+
     .parking {
       background: white;
-      margin: 1rem;
-      padding: 1rem;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
-    .ok { color: #15803d; }
-    .warn { color: #c2410c; }
-    .full { color: #b91c1c; }
+
+    .ok   { border-left: 6px solid #15803d; }
+    .warn { border-left: 6px solid #c2410c; }
+    .full { border-left: 6px solid #b91c1c; }
+
+    .name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .info {
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 
@@ -40,40 +56,51 @@
 
 <script>
 (async function () {
-  const list = document.getElementById("list");
+  const container = document.getElementById("list");
 
-  const res = await fetch("/api/parkings-relais");
-  const payload = await res.json();
+  try {
+    const response = await fetch("/api/parkings-relais");
+    const payload = await response.json();
 
-  console.log("RAW DATA:", payload);
+    console.log("RAW DATA:", payload);
 
-  const parkings = Array.isArray(payload.data) ? payload.data : [];
+    // ✅ DONNÉES RÉELLES CONFIRMÉES
+    const parkings = payload.data;
 
-  if (parkings.length === 0) {
-    list.textContent = "Aucun parking disponible";
-    return;
+    if (!parkings || parkings.length === 0) {
+      container.textContent = "Aucun parking disponible";
+      return;
+    }
+
+    let html = "";
+
+    for (const p of parkings) {
+      const nom = p.nom;
+      const capacite = p.capacite;
+      const placesLibres = capacite - (p.place_hand ?? 0);
+
+      const taux = placesLibres / capacite;
+
+      let cls = "ok";
+      if (taux < 0.2) cls = "full";
+      else if (taux < 0.5) cls = "warn";
+
+      html += `
+        <div class="parking ${cls}">
+          <div class="name">${nom}</div>
+          <div class="info">
+            ${placesLibres} places libres / ${capacite}
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    container.textContent = "Erreur de chargement des données";
   }
-
-  // ✅ RENDU EN UNE SEULE PASSE (clé du déblocage)
-  let html = "";
-
-  for (const p of parkings) {
-    const libres = p.capacite - (p.place_hand ?? 0);
-    const taux = libres / p.capacite;
-
-    let cls = "ok";
-    if (taux < 0.2) cls = "full";
-    else if (taux < 0.5) cls = "warn";
-
-    html += `
-      <div class="parking ${cls}">
-        <strong>${p.nom}</strong><br/>
-        ${libres} places libres / ${p.capacite}
-      </div>
-    `;
-  }
-
-  list.innerHTML = html;
 })();
 </script>
 
