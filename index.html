@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Parkings relais Lyon</title>
 
+  <!-- ✅ LIGNE CORRIGÉE -->
   <link rel="manifest" href="/manifest.json" />
+
   <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
 
@@ -70,10 +73,7 @@
       const list = document.getElementById("list");
       list.innerHTML = "";
 
-      const records =
-        data.features ||
-        data?.data ||
-        [];
+      const records = data.features || data.data || [];
 
       records.forEach(item => {
         const p = item.properties || item;
@@ -93,7 +93,6 @@
             ${dispo} places libres / ${cap}
           </div>
         `;
-
         list.appendChild(div);
       });
 
@@ -105,4 +104,3 @@
   </script>
 </body>
 </html>
-``
