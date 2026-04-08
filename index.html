@@ -10,7 +10,9 @@
   <link rel="manifest" href="/manifest.json" />
 
   <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
 
   <style>
     body {
@@ -69,43 +71,25 @@
   async function loadParkings() {
     try {
       const res = await fetch("/api/parkings-relais");
-
-      if (!res.ok) {
-        throw new Error("HTTP " + res.status);
-      }
+      if (!res.ok) throw new Error("HTTP " + res.status);
 
       const data = await res.json();
-
-console.log("FIELDS:", data.fields);
-console.log("FIRST ROW:", data.values?.[0]);
 
       const list = document.getElementById("list");
       list.innerHTML = "";
 
-      // ✅ Datapusher structure
-      const fields = data.fields || [];
-      const values = data.values || [];
-
-      if (!fields.length || !values.length) {
+      if (!Array.isArray(data) || data.length === 0) {
         list.textContent = "Aucune donnée disponible.";
         return;
       }
 
-      // ✅ Mapping dynamique des colonnes
-      const idxNom = fields.indexOf("nom");
-      const idxCap = fields.indexOf("capacite");
-      const idxDispo = fields.indexOf("places_disponibles");
-
-      values.forEach(row => {
-        const nom = row[idxNom];
-        const capacite = row[idxCap];
-        const disponibles = row[idxDispo];
-
-        if (!nom || capacite == null || disponibles == null) return;
-
-        const taux = capacite > 0 ? disponibles / capacite : 0;
+      data.forEach(p => {
+        const nom = p.nom;
+        const capacite = p.capacite;
+        const disponibles = capacite - (p.place_hand ?? 0);
 
         let cls = "ok";
+        const taux = capacite > 0 ? disponibles / capacite : 0;
         if (taux < 0.2) cls = "full";
         else if (taux < 0.5) cls = "warn";
 
@@ -114,24 +98,24 @@ console.log("FIRST ROW:", data.values?.[0]);
         div.innerHTML = `
           <div class="title">${nom}</div>
           <div class="status ${cls}">
-            ${disponibles} places libres / ${capacite}
+            ${disponibles} places disponibles / ${capacite}
           </div>
         `;
-
         list.appendChild(div);
       });
 
       document.getElementById("updated").textContent =
         "Mise à jour : " + new Date().toLocaleTimeString();
 
-    } catch (err) {
+    } catch (e) {
       document.getElementById("list").textContent =
         "Erreur de chargement des données.";
-      console.error("PWA error:", err);
+      console.error(e);
     }
   }
 
   loadParkings();
 </script>
+``
 </body>
 </html>
