@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parkings relais Lyon</title>
+
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+    }
+    .container {
+      padding: 1rem;
+    }
+    .parking {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .title {
+      font-weight: 600;
+    }
+    .status {
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+    .ok { color: #15803d; }
+    .warn { color: #c2410c; }
+    .full { color: #b91c1c; }
+    .updated {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #475569;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>Parkings relais TCL – temps réel</header>
+
+  <div class="container" id="list">Chargement…</div>
+  <div class="updated" id="updated"></div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js");
+    }
+
+    async function loadParkings() {
+      const res = await fetch("/api/parkings-relais");
+      const data = await res.json();
+
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      const records =
+        data.features ||
+        data?.data ||
+        [];
+
+      records.forEach(item => {
+        const p = item.properties || item;
+        const dispo = p.places_disponibles ?? p.nbplaceslibres ?? 0;
+        const cap = p.capacite ?? p.nbplaces ?? 0;
+        const taux = cap > 0 ? dispo / cap : 0;
+
+        let cls = "ok";
+        if (taux < 0.2) cls = "full";
+        else if (taux < 0.5) cls = "warn";
+
+        const div = document.createElement("div");
+        div.className = "parking";
+        div.innerHTML = `
+          <div class="title">${p.nom || p.nom_parking}</div>
+          <div class="status ${cls}">
+            ${dispo} places libres / ${cap}
+          </div>
+        `;
+
+        list.appendChild(div);
+      });
+
+      document.getElementById("updated").textContent =
+        "Mise à jour : " + new Date().toLocaleTimeString();
+    }
+
+    loadParkings();
+  </script>
+</body>
+</html>
+``
