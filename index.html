@@ -23,6 +23,7 @@
       margin: 1rem;
       padding: 1rem;
       border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
     .ok { color: green; }
     .warn { color: orange; }
@@ -31,27 +32,31 @@
 </head>
 
 <body>
+
 <header>Parkings relais TCL – LIVE</header>
 
 <div id="list">Chargement…</div>
 
 <script>
 async function load() {
+  const list = document.getElementById("list");
+
   const res = await fetch("/api/parkings-relais");
   const data = await res.json();
 
   console.log("RAW DATA:", data);
 
-  // ✅ CLEF CRITIQUE (Datapusher Grand Lyon)
-  const parkings =
-    Object.values(data).find(v => Array.isArray(v)) ?? [];
+  // ✅ EXTRACTION CORRECTE
+  const parkings = Array.isArray(data?.data) ? data.data : [];
 
-  const list = document.getElementById("list");
   list.innerHTML = "";
 
   parkings.forEach(p => {
-    const dispo = p.capacite - (p.place_hand ?? 0);
-    const taux = dispo / p.capacite;
+    const nom = p.nom;
+    const capacite = p.capacite;
+    const placesLibres = capacite - (p.place_hand ?? 0);
+
+    const taux = placesLibres / capacite;
 
     let cls = "ok";
     if (taux < 0.2) cls = "full";
@@ -59,8 +64,8 @@ async function load() {
 
     list.innerHTML += `
       <div class="parking ${cls}">
-        <strong>${p.nom}</strong><br/>
-        ${dispo} places libres / ${p.capacite}
+        <strong>${nom}</strong><br/>
+        ${placesLibres} places libres / ${capacite}
       </div>
     `;
   });
@@ -68,6 +73,7 @@ async function load() {
 
 load();
 </script>
+
 </body>
 </html>
 ``
