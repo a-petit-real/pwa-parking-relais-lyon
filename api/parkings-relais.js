@@ -14,12 +14,15 @@ export default async function handler(req, res) {
 
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
-    const response = await fetch(endpoint, {
-      headers: {
-        Authorization: `Basic ${auth}`,
-        Accept: "application/json",
-      },
-    });
+    
+const response = await fetch(endpoint, {
+  headers: {
+    Authorization: `Basic ${auth}`,
+    Accept: "application/json",
+    "User-Agent": "pwa-parking-relais-lyon/1.0"
+  },
+});
+
 
     if (!response.ok) {
       return res.status(response.status).json({
