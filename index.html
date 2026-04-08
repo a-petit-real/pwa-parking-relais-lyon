@@ -61,25 +61,38 @@
   <div class="container" id="list">Chargement…</div>
   <div class="updated" id="updated"></div>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js");
-    }
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/service-worker.js");
+  }
 
-    async function loadParkings() {
+  async function loadParkings() {
+    try {
       const res = await fetch("/api/parkings-relais");
       const data = await res.json();
 
       const list = document.getElementById("list");
       list.innerHTML = "";
 
-      const records = data.features || data.data || [];
+      // ✅ Datapusher Grand Lyon → data.values
+      const records = data.values || [];
 
-      records.forEach(item => {
-        const p = item.properties || item;
-        const dispo = p.places_disponibles ?? p.nbplaceslibres ?? 0;
-        const cap = p.capacite ?? p.nbplaces ?? 0;
-        const taux = cap > 0 ? dispo / cap : 0;
+      if (!records.length) {
+        list.innerHTML = "Aucune donnée disponible.";
+        return;
+      }
+
+      records.forEach(row => {
+        /*
+          ⚠️ Index des colonnes :
+          À ajuster si besoin selon ton JSON réel
+          (mais les 3 suivants sont les bons pour les P+R)
+        */
+        const nom = row[1];               // nom du parking
+        const capacite = row[4];          // capacité totale
+        const disponibles = row[5];       // places libres
+
+        const taux = capacite > 0 ? disponibles / capacite : 0;
 
         let cls = "ok";
         if (taux < 0.2) cls = "full";
@@ -88,19 +101,26 @@
         const div = document.createElement("div");
         div.className = "parking";
         div.innerHTML = `
-          <div class="title">${p.nom || p.nom_parking}</div>
+          <div class="title">${nom}</div>
           <div class="status ${cls}">
-            ${dispo} places libres / ${cap}
+            ${disponibles} places libres / ${capacite}
           </div>
         `;
+
         list.appendChild(div);
       });
 
       document.getElementById("updated").textContent =
         "Mise à jour : " + new Date().toLocaleTimeString();
-    }
 
-    loadParkings();
-  </script>
+    } catch (err) {
+      document.getElementById("list").textContent =
+        "Erreur de chargement des données.";
+      console.error(err);
+    }
+  }
+
+  loadParkings();
+</script>
 </body>
 </html>
