@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     }
 
     const endpoint =
-      "https://data.grandlyon.com/fr/datapusher/ws/rdata/tcl_sytral.tclparcrelaisst/all.json";
+      "https://data.grandlyon.com/fr/datapusher/ws/rdata/tcl_sytral.tclparcrelaistr/all.json";
 
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
