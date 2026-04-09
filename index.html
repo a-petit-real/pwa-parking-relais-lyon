@@ -14,12 +14,10 @@
       --green: #22c55e;
       --orange: #f59e0b;
       --red: #ef4444;
-      --divider: rgba(255,255,255,0.06);
+      --divider: rgba(255,255,255,0.08);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -34,23 +32,23 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--bg);
-      padding: 14px 16px 10px;
+      background: linear-gradient(180deg, #0b0e11 0%, #0b0e11d0 100%);
+      padding: 14px 16px 12px;
       border-bottom: 1px solid var(--divider);
     }
 
     .title {
       font-size: 18px;
       font-weight: 600;
-      margin-bottom: 6px;
     }
 
     .subtitle {
       font-size: 12px;
       color: var(--text-secondary);
+      margin-top: 2px;
     }
 
-    /* ---------- TABS ---------- */
+    /* ---------- TABS (visuels pour l’instant) ---------- */
 
     .tabs {
       display: flex;
@@ -64,8 +62,8 @@
       padding: 8px;
       border-radius: 10px;
       font-size: 14px;
-      color: var(--text-secondary);
       background: var(--surface);
+      color: var(--text-secondary);
     }
 
     .tab.active {
@@ -87,29 +85,22 @@
       margin-bottom: 12px;
     }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-    }
-
     .parking-name {
       font-size: 14px;
-      font-weight: 500;
       color: var(--text-secondary);
+      margin-bottom: 4px;
     }
 
     .places {
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 700;
       line-height: 1;
     }
 
     .places-label {
       font-size: 13px;
-      margin-top: 2px;
       color: var(--text-secondary);
+      margin-top: 2px;
     }
 
     .capacity {
@@ -124,7 +115,7 @@
       margin-top: 10px;
       height: 6px;
       width: 100%;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.1);
       border-radius: 999px;
       overflow: hidden;
     }
@@ -134,7 +125,6 @@
       border-radius: 999px;
       transition: width 0.4s ease;
     }
-
   </style>
 </head>
 
@@ -157,44 +147,48 @@
 <script>
 (async function () {
 
+  // 🔹 Chargement du flux temps réel
   const res = await fetch("/api/parkings-relais");
   const payload = await res.json();
 
-  // ✅ DONNÉE TEMPS RÉEL CONFIRMÉE
-  const parkings = payload.values;
+  console.log("RAW PAYLOAD:", payload);
+
+  // ✅ Données temps réel : toujours dans payload.values
+  const parkings = Array.isArray(payload.values) ? payload.values : [];
 
   const list = document.getElementById("list");
   const updated = document.getElementById("updated");
 
-  // Timestamp
+  // Horodatage si présent
   if (payload.last_update) {
     updated.textContent = "Mise à jour : " + payload.last_update.slice(11,16);
+  } else {
+    updated.textContent = "Mise à jour en temps réel";
   }
 
-  // --- TRI ---
-  // Mermoz-Pinel toujours premier
+  // 🔹 Règle métier : Mermoz‑Pinel toujours en premier
   const MERMOZ = "Mermoz-Pinel";
 
-  const sorted = [
+  const ordered = [
     ...parkings.filter(p => p.nom === MERMOZ),
     ...parkings.filter(p => p.nom !== MERMOZ)
   ];
 
   list.innerHTML = "";
 
-  for (const p of sorted) {
-    
+  for (const p of ordered) {
 
-const libres =
-  p.libres ??
-  p.places_disponibles ??
-  p.nb_places_disponibles ??
-  0;
+    // ✅ Lecture ROBUSTE du nombre de places libres
+    const libres = Number(
+      p.libres ??
+      p.places_disponibles ??
+      p.nb_places_disponibles ??
+      p.disponibilite?.libres ??
+      0
+    );
 
-const capacite = Number(p.capacite ?? 0);
-const ratio = capacite > 0 ? libres / capacite : 0;
-
-
+    const capacite = Number(p.capacite ?? 0);
+    const ratio = capacite > 0 ? libres / capacite : 0;
 
     let color;
     if (libres === 0) color = "var(--red)";
@@ -205,16 +199,12 @@ const ratio = capacite > 0 ? libres / capacite : 0;
     card.className = "card";
 
     card.innerHTML = `
-      <div class="card-header">
-        <div>
-          <div class="parking-name">${p.nom}</div>
-          <div class="places">${libres}</div>
-          <div class="places-label">places libres</div>
-        </div>
-      </div>
+      <div class="parking-name">${p.nom}</div>
+      <div class="places">${libres}</div>
+      <div class="places-label">places libres</div>
       <div class="capacity">Capacité ${capacite}</div>
       <div class="bar">
-        <div class="bar-fill" style="width:${Math.max(0, ratio*100)}%; background:${color}"></div>
+        <div class="bar-fill" style="width:${Math.min(100, ratio * 100)}%; background:${color}"></div>
       </div>
     `;
 
