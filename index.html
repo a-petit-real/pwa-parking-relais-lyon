@@ -183,9 +183,16 @@
   list.innerHTML = "";
 
   for (const p of sorted) {
-    const libres = p.libres;
-    const capacite = p.capacite;
-    const ratio = libres / capacite;
+    
+const libres =
+  p.libres ??
+  p.places_disponibles ??
+  p.nb_places_disponibles ??
+  0;
+
+const capacite = Number(p.capacite ?? 0);
+const ratio = capacite > 0 ? libres / capacite : 0;
+
 
     let color;
     if (libres === 0) color = "var(--red)";
