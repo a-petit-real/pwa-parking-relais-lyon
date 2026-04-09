@@ -179,12 +179,14 @@
   for (const p of ordered) {
 
     // ✅ Lecture ROBUSTE du nombre de places libres
-    const libres = Number(
-      p.libres ??
-      p.places_disponibles ??
-      p.nb_places_disponibles ??
-      p.disponibilite?.libres ??
-      0
+    
+const libres = Number(
+  p.places_libres ??
+  p.places_disponibles ??
+  p.nb_places_disponibles ??
+  p.disponibilite?.places_libres ??
+  p.lib
+
     );
 
     const capacite = Number(p.capacite ?? 0);
