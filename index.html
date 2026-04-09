@@ -2,81 +2,216 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Parkings relais TCL – LIVE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Parkings relais · LIVE</title>
 
   <style>
+    :root {
+      --bg: #0b0e11;
+      --surface: #141821;
+      --text-main: #ffffff;
+      --text-secondary: #9ca3af;
+      --green: #22c55e;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --divider: rgba(255,255,255,0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #f3f4f6;
-      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
     }
+
+    /* ---------- HEADER ---------- */
+
     header {
-      background: #0f172a;
-      color: white;
-      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ---------- TABS ---------- */
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tab {
+      flex: 1;
       text-align: center;
-      font-weight: 600;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      background: var(--surface);
     }
-    .parking {
-      background: white;
-      margin: 1rem;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+
+    .tab.active {
+      background: #1e2633;
+      color: var(--text-main);
+      font-weight: 500;
     }
-    .ok   { border-left: 6px solid #15803d; }
-    .warn { border-left: 6px solid #c2410c; }
-    .full { border-left: 6px solid #b91c1c; }
-    .name {
-      font-weight: 600;
+
+    /* ---------- LIST ---------- */
+
+    .list {
+      padding: 12px;
     }
+
+    .card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .parking-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .places {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .places-label {
+      font-size: 13px;
+      margin-top: 2px;
+      color: var(--text-secondary);
+    }
+
+    .capacity {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* ---------- BAR ---------- */
+
+    .bar {
+      margin-top: 10px;
+      height: 6px;
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
   </style>
 </head>
 
 <body>
 
-<header>Parkings relais TCL – LIVE</header>
-<div id="list">Chargement…</div>
+<header>
+  <div class="title">Parkings relais · LIVE</div>
+  <div class="subtitle" id="updated">Mise à jour…</div>
+
+  <div class="tabs">
+    <div class="tab active">Autour de moi</div>
+    <div class="tab">+ de places</div>
+  </div>
+</header>
+
+<div class="list" id="list">
+  Chargement…
+</div>
 
 <script>
 (async function () {
-  const container = document.getElementById("list");
 
   const res = await fetch("/api/parkings-relais");
   const payload = await res.json();
 
-  console.log("RAW DATA:", payload);
-
-  // ✅ C'EST ICI LA VRAIE DONNÉE
+  // ✅ DONNÉE TEMPS RÉEL CONFIRMÉE
   const parkings = payload.values;
 
-  if (!parkings || parkings.length === 0) {
-    container.textContent = "Aucun parking disponible";
-    return;
+  const list = document.getElementById("list");
+  const updated = document.getElementById("updated");
+
+  // Timestamp
+  if (payload.last_update) {
+    updated.textContent = "Mise à jour : " + payload.last_update.slice(11,16);
   }
 
-  let html = "";
+  // --- TRI ---
+  // Mermoz-Pinel toujours premier
+  const MERMOZ = "Mermoz-Pinel";
 
-  for (const p of parkings) {
+  const sorted = [
+    ...parkings.filter(p => p.nom === MERMOZ),
+    ...parkings.filter(p => p.nom !== MERMOZ)
+  ];
+
+  list.innerHTML = "";
+
+  for (const p of sorted) {
+    const libres = p.places_disponibles;
     const capacite = p.capacite;
-    const libres = p.nb_tot_place_dispo;
-    const taux = libres / capacite;
+    const ratio = libres / capacite;
 
-    let cls = "ok";
-    if (taux < 0.2) cls = "full";
-    else if (taux < 0.5) cls = "warn";
+    let color;
+    if (libres === 0) color = "var(--red)";
+    else if (ratio < 0.15) color = "var(--orange)";
+    else color = "var(--green)";
 
-    html += `
-      <div class="parking ${cls}">
-        <div class="name">${p.nom}</div>
-        <div>${libres} places libres / ${capacite}</div>
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div>
+          <div class="parking-name">${p.nom}</div>
+          <div class="places">${libres}</div>
+          <div class="places-label">places libres</div>
+        </div>
+      </div>
+      <div class="capacity">Capacité ${capacite}</div>
+      <div class="bar">
+        <div class="bar-fill" style="width:${Math.max(0, ratio*100)}%; background:${color}"></div>
       </div>
     `;
+
+    list.appendChild(card);
   }
 
-  container.innerHTML = html;
 })();
 </script>
 
