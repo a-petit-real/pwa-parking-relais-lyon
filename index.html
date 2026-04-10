@@ -36,16 +36,8 @@
       border-bottom: 1px solid var(--divider);
     }
 
-    .title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .subtitle {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
+    .title { font-size: 18px; font-weight: 600; }
+    .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 
     .tabs {
       display: flex;
@@ -69,9 +61,7 @@
       font-weight: 500;
     }
 
-    .list {
-      padding: 12px;
-    }
+    .list { padding: 12px; }
 
     .card {
       background: var(--surface);
@@ -116,7 +106,7 @@
     .bar-fill {
       height: 100%;
       border-radius: 999px;
-      transition: width 0.4s ease;
+      transition: width 0.3s ease;
     }
   </style>
 </head>
@@ -125,7 +115,7 @@
 
 <header>
   <div class="title">Parkings relais · LIVE</div>
-  <div class="subtitle" id="updated">Mise à jour…</div>
+  <div class="subtitle" id="updated">Mise à jour en temps réel</div>
 
   <div class="tabs">
     <div class="tab active">Autour de moi</div>
@@ -136,74 +126,32 @@
 <div class="list" id="list">Chargement…</div>
 
 <script>
-function toNumber(v) {
-  if (v === undefined || v === null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
-
-function computeFreePlaces(p) {
-  const capacite = toNumber(p.capacite) ?? 0;
-
-  // 1️⃣ champs directs
-  const direct =
-    toNumber(p.nb_places_disponibles) ??
-    toNumber(p.places_libres) ??
-    toNumber(p.places_disponibles) ??
-    toNumber(p.libres);
-
-  if (direct !== null) return direct;
-
-  // 2️⃣ champs imbriqués
-  const nested =
-    toNumber(p.disponibilite?.places_libres) ??
-    toNumber(p.disponibilite?.libres);
-
-  if (nested !== null) return nested;
-
-  // 3️⃣ calcul via taux d’occupation
-  const taux =
-    toNumber(p.taux_occupation) ??
-    toNumber(p.disponibilite?.taux_occupation);
-
-  if (taux !== null && capacite > 0) {
-    return Math.round(capacite * (1 - taux));
-  }
-
-  return 0;
-}
-
 (async function () {
   const res = await fetch("/api/parkings-relais");
   const payload = await res.json();
 
-  console.log("PAYLOAD:", payload);
-
-  const list = document.getElementById("list");
-  const updated = document.getElementById("updated");
-
-  updated.textContent = "Mise à jour en temps réel";
+  console.log("PAYLOAD UTILISÉ :", payload);
 
   const parkings = Array.isArray(payload.values) ? payload.values : [];
+  const list = document.getElementById("list");
 
-  const MERMOZ = "Mermoz-Pinel";
-
+  // Mermoz Pinel toujours en premier
   const ordered = [
-    ...parkings.filter(p => p.nom === MERMOZ),
-    ...parkings.filter(p => p.nom !== MERMOZ)
+    ...parkings.filter(p => p.nom === "Mermoz Pinel"),
+    ...parkings.filter(p => p.nom !== "Mermoz Pinel")
   ];
 
   list.innerHTML = "";
 
   for (const p of ordered) {
-    const capacite = toNumber(p.capacite) ?? 0;
-    const libres = computeFreePlaces(p);
+    const libres = Number(p.nb_tot_place_dispo);
+    const capacite = Number(p.capacite);
     const ratio = capacite > 0 ? libres / capacite : 0;
 
-    let color;
-    if (libres === 0) color = "var(--red)";
-    else if (ratio < 0.15) color = "var(--orange)";
-    else color = "var(--green)";
+    let color =
+      libres === 0 ? "var(--red)" :
+      ratio < 0.15 ? "var(--orange)" :
+      "var(--green)";
 
     const card = document.createElement("div");
     card.className = "card";
@@ -214,7 +162,7 @@ function computeFreePlaces(p) {
       <div class="places-label">places libres</div>
       <div class="capacity">Capacité ${capacite}</div>
       <div class="bar">
-        <div class="bar-fill" style="width:${Math.min(100, ratio * 100)}%; background:${color}"></div>
+        <div class="bar-fill" style="width:${ratio * 100}%; background:${color}"></div>
       </div>
     `;
 
