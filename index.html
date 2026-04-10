@@ -27,8 +27,6 @@
       color: var(--text-main);
     }
 
-    /* ========== HEADER ========== */
-
     header {
       position: sticky;
       top: 0;
@@ -48,8 +46,6 @@
       color: var(--text-secondary);
       margin-top: 2px;
     }
-
-    /* ========== TABS (visuels) ========== */
 
     .tabs {
       display: flex;
@@ -72,8 +68,6 @@
       color: var(--text-main);
       font-weight: 500;
     }
-
-    /* ========== LIST ========== */
 
     .list {
       padding: 12px;
@@ -110,8 +104,6 @@
       margin-top: 6px;
     }
 
-    /* ========== BAR ========== */
-
     .bar {
       margin-top: 10px;
       height: 6px;
@@ -141,39 +133,59 @@
   </div>
 </header>
 
-<div class="list" id="list">
-  Chargement…
-</div>
+<div class="list" id="list">Chargement…</div>
 
 <script>
-/* ========= UTILITAIRES ROBUSTES ========= */
-
-function toNumber(value) {
-  if (value === undefined || value === null) return 0;
-  const n = Number(value);
-  return Number.isNaN(n) ? 0 : n;
+function toNumber(v) {
+  if (v === undefined || v === null) return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
 }
 
-/* ========= MAIN ========= */
+function computeFreePlaces(p) {
+  const capacite = toNumber(p.capacite) ?? 0;
+
+  // 1️⃣ champs directs
+  const direct =
+    toNumber(p.nb_places_disponibles) ??
+    toNumber(p.places_libres) ??
+    toNumber(p.places_disponibles) ??
+    toNumber(p.libres);
+
+  if (direct !== null) return direct;
+
+  // 2️⃣ champs imbriqués
+  const nested =
+    toNumber(p.disponibilite?.places_libres) ??
+    toNumber(p.disponibilite?.libres);
+
+  if (nested !== null) return nested;
+
+  // 3️⃣ calcul via taux d’occupation
+  const taux =
+    toNumber(p.taux_occupation) ??
+    toNumber(p.disponibilite?.taux_occupation);
+
+  if (taux !== null && capacite > 0) {
+    return Math.round(capacite * (1 - taux));
+  }
+
+  return 0;
+}
 
 (async function () {
   const res = await fetch("/api/parkings-relais");
   const payload = await res.json();
 
-  console.log("PAYLOAD BRUT :", payload);
+  console.log("PAYLOAD:", payload);
 
   const list = document.getElementById("list");
   const updated = document.getElementById("updated");
 
+  updated.textContent = "Mise à jour en temps réel";
+
   const parkings = Array.isArray(payload.values) ? payload.values : [];
 
-  if (payload.last_update) {
-    updated.textContent = "Mise à jour : " + payload.last_update.slice(11, 16);
-  } else {
-    updated.textContent = "Mise à jour en temps réel";
-  }
-
-  /* Règle métier : Mermoz‑Pinel toujours premier */
   const MERMOZ = "Mermoz-Pinel";
 
   const ordered = [
@@ -184,17 +196,8 @@ function toNumber(value) {
   list.innerHTML = "";
 
   for (const p of ordered) {
-
-    const libres = toNumber(
-      p.places_libres ??
-      p.places_disponibles ??
-      p.nb_places_disponibles ??
-      p.disponibilite?.places_libres ??
-      p.disponibilite?.libres ??
-      p.libres
-    );
-
-    const capacite = toNumber(p.capacite);
+    const capacite = toNumber(p.capacite) ?? 0;
+    const libres = computeFreePlaces(p);
     const ratio = capacite > 0 ? libres / capacite : 0;
 
     let color;
@@ -211,9 +214,7 @@ function toNumber(value) {
       <div class="places-label">places libres</div>
       <div class="capacity">Capacité ${capacite}</div>
       <div class="bar">
-        <div class="bar-fill"
-             style="width:${Math.min(100, ratio * 100)}%; background:${color}">
-        </div>
+        <div class="bar-fill" style="width:${Math.min(100, ratio * 100)}%; background:${color}"></div>
       </div>
     `;
 
