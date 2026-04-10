@@ -9,6 +9,7 @@
     :root {
       --bg: #0b0e11;
       --surface: #141821;
+      --surface-active: #1e2633;
       --text-main: #ffffff;
       --text-secondary: #9ca3af;
       --green: #22c55e;
@@ -26,13 +27,13 @@
       color: var(--text-main);
     }
 
-    /* ---------- HEADER ---------- */
+    /* ========== HEADER ========== */
 
     header {
       position: sticky;
       top: 0;
       z-index: 10;
-      background: linear-gradient(180deg, #0b0e11 0%, #0b0e11d0 100%);
+      background: linear-gradient(180deg, #0b0e11 0%, #0b0e11e6 100%);
       padding: 14px 16px 12px;
       border-bottom: 1px solid var(--divider);
     }
@@ -48,7 +49,7 @@
       margin-top: 2px;
     }
 
-    /* ---------- TABS (visuels pour l’instant) ---------- */
+    /* ========== TABS (visuels) ========== */
 
     .tabs {
       display: flex;
@@ -67,12 +68,12 @@
     }
 
     .tab.active {
-      background: #1e2633;
+      background: var(--surface-active);
       color: var(--text-main);
       font-weight: 500;
     }
 
-    /* ---------- LIST ---------- */
+    /* ========== LIST ========== */
 
     .list {
       padding: 12px;
@@ -109,7 +110,7 @@
       margin-top: 6px;
     }
 
-    /* ---------- BAR ---------- */
+    /* ========== BAR ========== */
 
     .bar {
       margin-top: 10px;
@@ -145,28 +146,34 @@
 </div>
 
 <script>
-(async function () {
+/* ========= UTILITAIRES ROBUSTES ========= */
 
-  // 🔹 Chargement du flux temps réel
+function toNumber(value) {
+  if (value === undefined || value === null) return 0;
+  const n = Number(value);
+  return Number.isNaN(n) ? 0 : n;
+}
+
+/* ========= MAIN ========= */
+
+(async function () {
   const res = await fetch("/api/parkings-relais");
   const payload = await res.json();
 
-  console.log("RAW PAYLOAD:", payload);
-
-  // ✅ Données temps réel : toujours dans payload.values
-  const parkings = Array.isArray(payload.values) ? payload.values : [];
+  console.log("PAYLOAD BRUT :", payload);
 
   const list = document.getElementById("list");
   const updated = document.getElementById("updated");
 
-  // Horodatage si présent
+  const parkings = Array.isArray(payload.values) ? payload.values : [];
+
   if (payload.last_update) {
-    updated.textContent = "Mise à jour : " + payload.last_update.slice(11,16);
+    updated.textContent = "Mise à jour : " + payload.last_update.slice(11, 16);
   } else {
     updated.textContent = "Mise à jour en temps réel";
   }
 
-  // 🔹 Règle métier : Mermoz‑Pinel toujours en premier
+  /* Règle métier : Mermoz‑Pinel toujours premier */
   const MERMOZ = "Mermoz-Pinel";
 
   const ordered = [
@@ -178,18 +185,16 @@
 
   for (const p of ordered) {
 
-    // ✅ Lecture ROBUSTE du nombre de places libres
-    
-const libres = Number(
-  p.places_libres ??
-  p.places_disponibles ??
-  p.nb_places_disponibles ??
-  p.disponibilite?.places_libres ??
-  p.lib
-
+    const libres = toNumber(
+      p.places_libres ??
+      p.places_disponibles ??
+      p.nb_places_disponibles ??
+      p.disponibilite?.places_libres ??
+      p.disponibilite?.libres ??
+      p.libres
     );
 
-    const capacite = Number(p.capacite ?? 0);
+    const capacite = toNumber(p.capacite);
     const ratio = capacite > 0 ? libres / capacite : 0;
 
     let color;
@@ -206,13 +211,14 @@ const libres = Number(
       <div class="places-label">places libres</div>
       <div class="capacity">Capacité ${capacite}</div>
       <div class="bar">
-        <div class="bar-fill" style="width:${Math.min(100, ratio * 100)}%; background:${color}"></div>
+        <div class="bar-fill"
+             style="width:${Math.min(100, ratio * 100)}%; background:${color}">
+        </div>
       </div>
     `;
 
     list.appendChild(card);
   }
-
 })();
 </script>
 
