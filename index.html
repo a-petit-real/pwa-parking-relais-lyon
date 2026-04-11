@@ -6,7 +6,7 @@
 <title>Parkings relais TCL – places disponibles</title>
 
 <style>
-:root {
+:root{
   --bg:#0f131a;
   --card:#161b24;
   --header:#0f131a;
@@ -20,6 +20,8 @@
   --red:#ef4444;
 
   --gauge-bg:#2a2f3a;
+
+  --tcl:#e30613;
 }
 
 *{box-sizing:border-box}
@@ -27,8 +29,8 @@
 body{
   margin:0;
   background:var(--bg);
+  font-family:system-ui,sans-serif;
   color:var(--text);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
 /* ===== HEADER ===== */
@@ -46,14 +48,12 @@ body{
 
 .tcl-logo{
   height:36px;
-  flex-shrink:0;
 }
 
 .page-header h1{
   font-size:17px;
   margin:0;
   font-weight:700;
-  line-height:1.3;
 }
 
 .page-header span{
@@ -61,35 +61,45 @@ body{
   color:var(--muted);
 }
 
+/* bouton aide */
+.help-btn{
+  margin-left:auto;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid var(--muted);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  cursor:pointer;
+}
+
 /* ===== LOADER ===== */
-.loader-container{
+.loader{
   padding:64px 16px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:20px;
+  gap:16px;
 }
 
 .spinner{
-  width:52px;
-  height:52px;
+  width:48px;
+  height:48px;
   border-radius:50%;
   border:4px solid #2a2f3a;
-  border-top-color:#e30613;
+  border-top-color:var(--tcl);
   animation:spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-.loader-text{
-  color:var(--muted);
-  font-size:14px;
-}
+.loader-text{color:var(--muted);font-size:14px}
 
-/* ===== CONTENT ===== */
-#app{ padding:16px; display:none; }
+/* ===== LIST ===== */
+#app{display:none;padding:16px}
 
 .parking-card{
   max-width:380px;
@@ -99,72 +109,71 @@ body{
   margin-bottom:16px;
 }
 
-.parking-name{
-  font-size:14px;
-  color:var(--muted);
-  margin-bottom:12px;
-  font-weight:600;
-}
+.parking-name{font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600}
 
-.availability{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.availability{display:flex;align-items:center;gap:12px}
 
-.count{
-  font-size:32px;
-  font-weight:700;
-}
+.count{font-size:32px;font-weight:700}
+.label{font-size:13px;color:var(--muted)}
 
-.label{
-  font-size:13px;
-  color:var(--muted);
-}
-
-/* ===== JAUGE ===== */
-.fill-gauge{
-  display:flex;
-  gap:4px;
-}
-
+.fill-gauge{display:flex;gap:4px}
 .fill-gauge span{
-  width:10px;
-  height:14px;
-  border-radius:3px;
-  background:var(--gauge-bg);
+  width:10px;height:14px;border-radius:3px;background:var(--gauge-bg)
 }
+.fill-1 span:nth-child(-n+1){background:var(--red)}
+.fill-2 span:nth-child(-n+2){background:var(--orange)}
+.fill-3 span:nth-child(-n+3){background:var(--green)}
+.fill-4 span:nth-child(-n+4){background:var(--green)}
 
-.fill-1 span:nth-child(-n+1){background:var(--red);}
-.fill-2 span:nth-child(-n+2){background:var(--orange);}
-.fill-3 span:nth-child(-n+3){background:var(--green);}
-.fill-4 span:nth-child(-n+4){background:var(--green);}
-
-/* ===== TRANSPORT GRID ===== */
 .transport-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
   margin-top:16px;
+  gap:12px;
   text-align:center;
   font-size:13px;
-  color:var(--muted);
+  color:var(--muted)
 }
 
 .badge{
-  width:30px;
-  height:30px;
-  border-radius:50%;
+  width:30px;height:30px;border-radius:50%;
   border:2.5px solid #e2e8f0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:800;
-  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff
 }
 
-.lines{
-  line-height:1.4;
+/* ===== LEGEND ===== */
+.legend{
+  padding:8px 16px 16px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:center;
+}
+
+/* ===== MODAL ===== */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:20;
+}
+
+.modal-content{
+  background:#161b24;
+  margin:80px auto;
+  padding:20px;
+  max-width:400px;
+  border-radius:12px;
+  color:#fff;
+}
+
+.modal h2{margin-top:0;font-size:18px}
+.modal p{font-size:14px;color:var(--muted);line-height:1.5}
+
+.close{margin-top:12px;text-align:right}
+.close button{
+  background:none;border:none;color:#fff;font-weight:600;cursor:pointer
 }
 </style>
 </head>
@@ -172,83 +181,93 @@ body{
 <body>
 
 <header class="page-header">
-  <img
-    src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg"
-    alt="TCL Sytral"
-    class="tcl-logo"
-  >
+  <img class="tcl-logo" src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg" alt="TCL">
   <h1>Parkings relais TCL <span>– places disponibles</span></h1>
+  <div class="help-btn" onclick="openHelp()">?</div>
 </header>
 
-<div id="loader" class="loader-container">
+<div id="loader" class="loader">
   <div class="spinner"></div>
   <div class="loader-text">Chargement des disponibilités…</div>
 </div>
 
 <div id="app"></div>
 
+<div class="legend">
+  <strong>Légende :</strong>  
+  M = Métro · T = Tram · B = Bus
+</div>
+
+<!-- MODAL AIDE -->
+<div id="helpModal" class="modal">
+  <div class="modal-content">
+    <h2>À propos de ce service</h2>
+    <p>
+      Cette application vous permet de consulter en temps réel le nombre de
+      places disponibles dans les parkings relais TCL.
+    </p>
+    <p>
+      Le chiffre indique le nombre de places actuellement disponibles.
+      La jauge à côté donne une indication du niveau de remplissage du parking.
+    </p>
+    <p>
+      Les lettres M, T et B indiquent les lignes de métro, tram et bus accessibles
+      depuis le parking.
+    </p>
+    <div class="close">
+      <button onclick="closeHelp()">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <script>
+function openHelp(){document.getElementById("helpModal").style.display="block"}
+function closeHelp(){document.getElementById("helpModal").style.display="none"}
+
 fetch("/api/parkings-relais")
-  .then(r=>r.json())
-  .then(data=>{
-    let parkings=data.values||[];
+.then(r=>r.json())
+.then(data=>{
+  let parkings=data.values||[];
+  parkings=parkings.sort((a,b)=>
+    a.nom==="Mermoz Pinel"?-1:b.nom==="Mermoz Pinel"?1:0
+  );
 
-    parkings=parkings.sort((a,b)=>
-      a.nom==="Mermoz Pinel"?-1:
-      b.nom==="Mermoz Pinel"?1:0
-    );
+  document.getElementById("loader").style.display="none";
+  const root=document.getElementById("app");
+  root.style.display="block";
 
-    document.getElementById("loader").style.display="none";
-    document.getElementById("app").style.display="block";
+  parkings.forEach(p=>{
+    const ratio=p.nb_tot_place_dispo/p.capacite;
+    let level=0;
+    if(ratio>0.75)level=4;
+    else if(ratio>0.5)level=3;
+    else if(ratio>0.25)level=2;
+    else if(ratio>0)level=1;
 
-    const root=document.getElementById("app");
+    const lines=p.transport_lines||{};
 
-    parkings.forEach(p=>{
-      const ratio=p.nb_tot_place_dispo/p.capacite;
-      let level=0;
-      if(ratio>0.75)level=4;
-      else if(ratio>0.5)level=3;
-      else if(ratio>0.25)level=2;
-      else if(ratio>0)level=1;
-
-      const lines=p.transport_lines||{};
-
-      const card=document.createElement("div");
-      card.className="parking-card";
-      card.innerHTML=`
-        <div class="parking-name">${p.nom}</div>
-        <div class="availability">
-          <div>
-            <div class="count">${p.nb_tot_place_dispo}</div>
-            <div class="label">places disponibles</div>
-          </div>
-          <div class="fill-gauge fill-${level}">
-            <span></span><span></span><span></span><span></span>
-          </div>
+    const card=document.createElement("div");
+    card.className="parking-card";
+    card.innerHTML=`
+      <div class="parking-name">${p.nom}</div>
+      <div class="availability">
+        <div>
+          <div class="count">${p.nb_tot_place_dispo}</div>
+          <div class="label">places disponibles</div>
         </div>
-
-        <div class="transport-grid">
-          <div>
-            <div class="badge">M</div>
-            <div class="lines">${lines.metro?lines.metro.join("<br>"):"—"}</div>
-          </div>
-          <div>
-            <div class="badge">T</div>
-            <div class="lines">${lines.tram?lines.tram.join("<br>"):"—"}</div>
-          </div>
-          <div>
-            <div class="badge">B</div>
-            <div class="lines">${lines.bus?lines.bus.join("<br>"):"—"}</div>
-          </div>
+        <div class="fill-gauge fill-${level}">
+          <span></span><span></span><span></span><span></span>
         </div>
-      `;
-      root.appendChild(card);
-    });
-  })
-  .catch(()=>{
-    document.getElementById("loader").innerHTML=
-      "<div class='loader-text'>Erreur de chargement</div>";
+      </div>
+      <div class="transport-grid">
+        <div><div class="badge" title="Métro">M</div>${lines.metro?lines.metro.join("<br>"):"—"}</div>
+        <div><div class="badge" title="Tram">T</div>${lines.tram?lines.tram.join("<br>"):"—"}</div>
+        <div><div class="badge" title="Bus">B</div>${lines.bus?lines.bus.join("<br>"):"—"}</div>
+      </div>
+    `;
+    root.appendChild(card);
   });
+});
 </script>
 
 </body>
