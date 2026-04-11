@@ -1,202 +1,182 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Parkings relais TCL – places disponibles</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parkings relais TCL – places disponibles</title>
 
-  <style>
-    :root {
-      --bg: #0f131a;
-      --card: #161b24;
-      --header: #0f131a;
-      --border: #1f2430;
+<style>
+:root {
+  --bg:#0f131a;
+  --card:#161b24;
+  --header:#0f131a;
+  --border:#1f2430;
 
-      --text-main: #ffffff;
-      --text-muted: #a5adbd;
+  --text:#ffffff;
+  --muted:#a5adbd;
 
-      --green: #22c55e;
-      --orange: #f59e0b;
-      --red: #ef4444;
+  --green:#22c55e;
+  --orange:#f59e0b;
+  --red:#ef4444;
 
-      --gauge-bg: #2a2f3a;
-      --mode-border: #e2e8f0;
-      --tcl-red: #e30613;
-    }
+  --gauge-bg:#2a2f3a;
 
-    * { box-sizing: border-box; }
+  --tcl:#e30613;
+}
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: system-ui, sans-serif;
-      color: var(--text-main);
-    }
+*{box-sizing:border-box}
 
-    /* ===== HEADER ===== */
-    .page-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--header);
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+}
 
-    .tcl-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--tcl-red);
-      color: #fff;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      letter-spacing: 0.05em;
-    }
+/* ===== HEADER ===== */
+.page-header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:var(--header);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
 
-    .page-header h1 {
-      font-size: 17px;
-      font-weight: 700;
-      margin: 0;
-    }
+/* Logo TCL officiel stylisé */
+.tcl-logo{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:var(--tcl);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:-0.04em;
+}
 
-    .page-header span {
-      font-weight: 500;
-      color: var(--text-muted);
-    }
+.page-header h1{
+  font-size:17px;
+  margin:0;
+  font-weight:700;
+}
 
-    /* ===== LOADER ===== */
-    .loader-container {
-      padding: 48px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
+.page-header span{
+  font-weight:500;
+  color:var(--muted);
+}
 
-    .loader {
-      display: flex;
-      gap: 8px;
-    }
+/* ===== LOADER MODERNE ===== */
+.loader-container{
+  padding:64px 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
 
-    .loader span {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--tcl-red);
-      animation: bounce 1.2s infinite ease-in-out;
-    }
+.spinner{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  border:4px solid #2a2f3a;
+  border-top-color:var(--tcl);
+  animation:spin 1s linear infinite;
+}
 
-    .loader span:nth-child(2) { animation-delay: 0.15s; }
-    .loader span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
-      40% { transform: scale(1); opacity: 1; }
-    }
+.loader-text{
+  color:var(--muted);
+  font-size:14px;
+}
 
-    .loader-text {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
+/* ===== CONTENT ===== */
+#app{ padding:16px; display:none; }
 
-    /* ===== LIST ===== */
-    #app { padding: 16px; }
+.parking-card{
+  max-width:380px;
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
 
-    .parking-card {
-      max-width: 380px;
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
+.parking-name{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:12px;
+  font-weight:600;
+}
 
-    .parking-name {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
+.availability{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
 
-    .availability-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+.count{
+  font-size:32px;
+  font-weight:700;
+}
 
-    .count {
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1.1;
-    }
+.label{
+  font-size:13px;
+  color:var(--muted);
+}
 
-    .label {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+/* ===== JAUGE ===== */
+.fill-gauge{
+  display:flex;
+  gap:4px;
+}
 
-    /* ===== JAUGE ===== */
-    .fill-gauge {
-      display: flex;
-      gap: 4px;
-    }
+.fill-gauge span{
+  width:10px;
+  height:14px;
+  border-radius:3px;
+  background:var(--gauge-bg);
+}
 
-    .fill-gauge span {
-      width: 10px;
-      height: 14px;
-      border-radius: 3px;
-      background: var(--gauge-bg);
-    }
+.fill-1 span:nth-child(-n+1){background:var(--red);}
+.fill-2 span:nth-child(-n+2){background:var(--orange);}
+.fill-3 span:nth-child(-n+3){background:var(--green);}
+.fill-4 span:nth-child(-n+4){background:var(--green);}
 
-    .fill-1 span:nth-child(-n+1) { background: var(--red); }
-    .fill-2 span:nth-child(-n+2) { background: var(--orange); }
-    .fill-3 span:nth-child(-n+3) { background: var(--green); }
-    .fill-4 span:nth-child(-n+4) { background: var(--green); }
+/* ===== TRANSPORT GRID ===== */
+.transport-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:16px;
+  text-align:center;
+  font-size:13px;
+  color:var(--muted);
+}
 
-    /* ===== TRANSPORT MODALITIES (GRID) ===== */
-    .transport-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 16px;
-      font-size: 13px;
-      color: var(--text-muted);
-      text-align: center;
-    }
+.badge{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:2.5px solid #e2e8f0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  color:var(--text);
+}
 
-    .transport-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 2.5px solid var(--mode-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .lines {
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-
-    .error { padding: 24px; color: #ff6b6b; }
-  </style>
+.lines{
+  line-height:1.4;
+}
+</style>
 </head>
 
 <body>
@@ -206,50 +186,44 @@
   <h1>Parkings relais TCL <span>– places disponibles</span></h1>
 </header>
 
-<div id="content">
-  <div class="loader-container" id="loader">
-    <div class="loader">
-      <span></span><span></span><span></span>
-    </div>
-    <div class="loader-text">Chargement des disponibilités…</div>
-  </div>
-  <div id="app" style="display:none;"></div>
+<div id="loader" class="loader-container">
+  <div class="spinner"></div>
+  <div class="loader-text">Chargement des disponibilités…</div>
 </div>
+
+<div id="app"></div>
 
 <script>
 fetch("/api/parkings-relais")
-  .then(r => r.json())
-  .then(data => {
-    const root = document.getElementById("app");
-    const loader = document.getElementById("loader");
-
+  .then(r=>r.json())
+  .then(data=>{
     let parkings = data.values || [];
 
-    // ✅ Mermoz Pinel toujours en tête
-    parkings = parkings.sort((a,b) =>
-      a.nom === "Mermoz Pinel" ? -1 :
-      b.nom === "Mermoz Pinel" ? 1 : 0
+    parkings = parkings.sort((a,b)=>
+      a.nom==="Mermoz Pinel"?-1:
+      b.nom==="Mermoz Pinel"?1:0
     );
 
-    loader.style.display = "none";
-    root.style.display = "block";
+    document.getElementById("loader").style.display="none";
+    document.getElementById("app").style.display="block";
 
-    parkings.forEach(p => {
-      const ratio = p.nb_tot_place_dispo / p.capacite;
-      let level = 0;
-      if (ratio > 0.75) level = 4;
-      else if (ratio > 0.5) level = 3;
-      else if (ratio > 0.25) level = 2;
-      else if (ratio > 0) level = 1;
+    const root=document.getElementById("app");
 
-      const lines = p.transport_lines || {};
+    parkings.forEach(p=>{
+      const ratio=p.nb_tot_place_dispo/p.capacite;
+      let level=0;
+      if(ratio>0.75)level=4;
+      else if(ratio>0.5)level=3;
+      else if(ratio>0.25)level=2;
+      else if(ratio>0)level=1;
 
-      const card = document.createElement("div");
-      card.className = "parking-card";
-      card.innerHTML = `
+      const lines=p.transport_lines||{};
+
+      const card=document.createElement("div");
+      card.className="parking-card";
+      card.innerHTML=`
         <div class="parking-name">${p.nom}</div>
-
-        <div class="availability-row">
+        <div class="availability">
           <div>
             <div class="count">${p.nb_tot_place_dispo}</div>
             <div class="label">places disponibles</div>
@@ -260,28 +234,29 @@ fetch("/api/parkings-relais")
         </div>
 
         <div class="transport-grid">
-          <div class="transport-col">
+          <div>
             <div class="badge">M</div>
-            <div class="lines">${(lines.metro && lines.metro.length) ? lines.metro.join("<br>") : "—"}</div>
+            <div class="lines">${lines.metro?lines.metro.join("<br>"):"—"}</div>
           </div>
-          <div class="transport-col">
+          <div>
             <div class="badge">T</div>
-            <div class="lines">${(lines.tram && lines.tram.length) ? lines.tram.join("<br>") : "—"}</div>
+            <div class="lines">${lines.tram?lines.tram.join("<br>"):"—"}</div>
           </div>
-          <div class="transport-col">
+          <div>
             <div class="badge">B</div>
-            <div class="lines">${(lines.bus && lines.bus.length) ? lines.bus.join("<br>") : "—"}</div>
+            <div class="lines">${lines.bus?lines.bus.join("<br>"):"—"}</div>
           </div>
         </div>
       `;
       root.appendChild(card);
     });
   })
-  .catch(() => {
-    document.getElementById("loader").innerHTML =
-      "<div class='error'>Erreur de chargement des données</div>";
+  .catch(()=>{
+    document.getElementById("loader").innerHTML=
+      "<div class='loader-text'>Erreur de chargement</div>";
   });
 </script>
 
 </body>
 </html>
+``
