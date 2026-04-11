@@ -19,7 +19,7 @@
 
       --gauge-bg: #2a2f3a;
 
-      --mode-border: #3a4153;
+      --mode-border: #e2e8f0;
       --mode-text: #e2e8f0;
     }
 
@@ -88,25 +88,26 @@
     .fill-3 span:nth-child(-n+3) { background: var(--green); }
     .fill-4 span:nth-child(-n+4) { background: var(--green); }
 
-    /* --- Modalités de transport --- */
+    /* --- Modalités de transport (CERCLÉ ÉPAIS) --- */
 
     .transports {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       margin-top: 14px;
     }
 
     .mode {
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
-      border: 1.5px solid var(--mode-border);
+      border: 2.5px solid var(--mode-border);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--mode-text);
+      line-height: 1;
     }
   </style>
 </head>
@@ -124,7 +125,7 @@
         <div class="label">places libres</div>
       </div>
 
-      <!-- Jauge de remplissage (ici 1/4) -->
+      <!-- Jauge de remplissage (ex : 1/4) -->
       <div class="fill-gauge fill-1">
         <span></span><span></span><span></span><span></span>
       </div>
