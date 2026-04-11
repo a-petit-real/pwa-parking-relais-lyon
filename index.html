@@ -20,8 +20,6 @@
   --red:#ef4444;
 
   --gauge-bg:#2a2f3a;
-
-  --tcl:#e30613;
 }
 
 *{box-sizing:border-box}
@@ -29,7 +27,7 @@
 body{
   margin:0;
   background:var(--bg);
-  font-family:system-ui,sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
   color:var(--text);
 }
 
@@ -46,14 +44,17 @@ body{
   gap:12px;
 }
 
+/* ✅ LOGO TCL OFFICIEL, INVERSÉ POUR FOND SOMBRE */
 .tcl-logo{
-  height:36px;
+  height:32px;
+  filter: invert(1);
 }
 
 .page-header h1{
   font-size:17px;
   margin:0;
   font-weight:700;
+  line-height:1.3;
 }
 
 .page-header span{
@@ -90,7 +91,7 @@ body{
   height:48px;
   border-radius:50%;
   border:4px solid #2a2f3a;
-  border-top-color:var(--tcl);
+  border-top-color:#e30613;
   animation:spin 1s linear infinite;
 }
 
@@ -109,7 +110,12 @@ body{
   margin-bottom:16px;
 }
 
-.parking-name{font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600}
+.parking-name{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:12px;
+  font-weight:600;
+}
 
 .availability{display:flex;align-items:center;gap:12px}
 
@@ -128,8 +134,8 @@ body{
 .transport-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  margin-top:16px;
   gap:12px;
+  margin-top:16px;
   text-align:center;
   font-size:13px;
   color:var(--muted)
@@ -165,13 +171,12 @@ body{
   padding:20px;
   max-width:400px;
   border-radius:12px;
-  color:#fff;
 }
 
 .modal h2{margin-top:0;font-size:18px}
 .modal p{font-size:14px;color:var(--muted);line-height:1.5}
 
-.close{margin-top:12px;text-align:right}
+.close{text-align:right}
 .close button{
   background:none;border:none;color:#fff;font-weight:600;cursor:pointer
 }
@@ -181,7 +186,11 @@ body{
 <body>
 
 <header class="page-header">
-  <img class="tcl-logo" src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg" alt="TCL">
+  <img
+    class="tcl-logo"
+    src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg"
+    alt="TCL Sytral"
+  />
   <h1>Parkings relais TCL <span>– places disponibles</span></h1>
   <div class="help-btn" onclick="openHelp()">?</div>
 </header>
@@ -194,25 +203,22 @@ body{
 <div id="app"></div>
 
 <div class="legend">
-  <strong>Légende :</strong>  
-  M = Métro · T = Tram · B = Bus
+  <strong>Légende :</strong> M = Métro · T = Tram · B = Bus
 </div>
 
-<!-- MODAL AIDE -->
 <div id="helpModal" class="modal">
   <div class="modal-content">
     <h2>À propos de ce service</h2>
     <p>
-      Cette application vous permet de consulter en temps réel le nombre de
-      places disponibles dans les parkings relais TCL.
+      Cette application affiche en temps réel les places disponibles
+      dans les parkings relais du réseau TCL.
     </p>
     <p>
-      Le chiffre indique le nombre de places actuellement disponibles.
-      La jauge à côté donne une indication du niveau de remplissage du parking.
+      Le nombre correspond aux places actuellement disponibles.
+      La jauge indique le niveau de remplissage du parking.
     </p>
     <p>
-      Les lettres M, T et B indiquent les lignes de métro, tram et bus accessibles
-      depuis le parking.
+      Les colonnes M, T et B indiquent les lignes de métro, tram et bus accessibles.
     </p>
     <div class="close">
       <button onclick="closeHelp()">Fermer</button>
