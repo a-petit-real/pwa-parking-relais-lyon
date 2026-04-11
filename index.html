@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>P+R – V1</title>
+  <title>P+R</title>
 
   <style>
     :root {
@@ -36,6 +36,7 @@
       background: var(--card);
       border-radius: 14px;
       padding: 16px;
+      margin-bottom: 16px;
     }
 
     .parking-name {
@@ -44,23 +45,15 @@
       margin-bottom: 12px;
     }
 
-    /* --- Disponibilité --- */
-
     .availability-row {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .availability-text {
-      display: flex;
-      flex-direction: column;
-    }
-
     .free-places {
       font-size: 32px;
       font-weight: 700;
-      line-height: 1.1;
     }
 
     .label {
@@ -68,8 +61,6 @@
       color: var(--text-muted);
       margin-top: 2px;
     }
-
-    /* --- Jauge de remplissage (0/4 → 4/4) --- */
 
     .fill-gauge {
       display: flex;
@@ -88,8 +79,6 @@
     .fill-3 span:nth-child(-n+3) { background: var(--green); }
     .fill-4 span:nth-child(-n+4) { background: var(--green); }
 
-    /* --- Modalités de transport (CERCLÉ ÉPAIS) --- */
-
     .transports {
       display: flex;
       gap: 12px;
@@ -107,39 +96,61 @@
       font-size: 14px;
       font-weight: 800;
       color: var(--mode-text);
-      line-height: 1;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="parking-card">
+  <div id="app"></div>
 
-    <div class="parking-name">Mermoz Pinel</div>
+  <script>
+    fetch("/api/parkings-relais")
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("app");
 
-    <!-- Disponibilité -->
-    <div class="availability-row">
-      <div class="availability-text">
-        <div class="free-places">6</div>
-        <div class="label">places libres</div>
-      </div>
+        data.parkings.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "parking-card";
 
-      <!-- Jauge de remplissage (ex : 1/4) -->
-      <div class="fill-gauge fill-1">
-        <span></span><span></span><span></span><span></span>
-      </div>
-    </div>
+          card.innerHTML = `
+            <div class="parking-name">${p.name}</div>
 
-    <!-- Modalités de transport -->
-    <div class="transports">
-      <div class="mode" title="Métro">M</div>
-      <div class="mode" title="Tram">T</div>
-      <div class="mode" title="Bus">B</div>
-      <div class="mode" title="Vélo'v">V</div>
-    </div>
+            <div class="availability-row">
+              <div>
+                <div class="free-places">${p.availability.free_places}</div>
+                <div class="label">places libres</div>
+              </div>
 
-  </div>
+              <div class="fill-gauge fill-${fillLevel(p.availability.fill_level)}">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="transports">
+              ${p.transport_access.metro ? '<div class="mode">M</div>' : ''}
+              ${p.transport_access.tram ? '<div class="mode">T</div>' : ''}
+              ${p.transport_access.bus ? '<div class="mode">B</div>' : ''}
+              ${p.transport_access.velov ? '<div class="mode">V</div>' : ''}
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      });
+
+    function fillLevel(level) {
+      return {
+        "empty": 0,
+        "quarter": 1,
+        "half": 2,
+        "three_quarters": 3,
+        "full": 4
+      }[level] ?? 0;
+    }
+  </script>
 
 </body>
 </html>
+``
