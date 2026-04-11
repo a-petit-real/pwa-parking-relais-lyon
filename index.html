@@ -1,175 +1,159 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Parkings relais · LIVE</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P+R – V1</title>
 
   <style>
     :root {
-      --bg: #0b0e11;
-      --surface: #141821;
-      --surface-active: #1e2633;
+      --bg: #0f131a;
+      --card: #161b24;
       --text-main: #ffffff;
-      --text-secondary: #9ca3af;
+      --text-muted: #9aa4b2;
+
       --green: #22c55e;
       --orange: #f59e0b;
       --red: #ef4444;
-      --divider: rgba(255,255,255,0.08);
-    }
 
-    * { box-sizing: border-box; }
+      --bar-bg: #2a2f3a;
+    }
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      padding: 16px;
       background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text-main);
     }
 
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: linear-gradient(180deg, #0b0e11 0%, #0b0e11e6 100%);
-      padding: 14px 16px 12px;
-      border-bottom: 1px solid var(--divider);
-    }
-
-    .title { font-size: 18px; font-weight: 600; }
-    .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 8px;
-      border-radius: 10px;
-      font-size: 14px;
-      background: var(--surface);
-      color: var(--text-secondary);
-    }
-
-    .tab.active {
-      background: var(--surface-active);
-      color: var(--text-main);
-      font-weight: 500;
-    }
-
-    .list { padding: 12px; }
-
-    .card {
-      background: var(--surface);
+    .parking-card {
+      background: var(--card);
       border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 16px;
+      max-width: 360px;
     }
 
     .parking-name {
       font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
     }
 
-    .places {
-      font-size: 34px;
+    /* --- Disponibilité + confiance --- */
+
+    .availability {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .free-places {
+      font-size: 40px;
       font-weight: 700;
       line-height: 1;
     }
 
-    .places-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 2px;
+    .confidence {
+      display: flex;
+      gap: 4px;
     }
 
-    .capacity {
+    .confidence span {
+      width: 10px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--bar-bg);
+    }
+
+    .confidence.stable span.fill {
+      background: var(--green);
+    }
+
+    .confidence.variable span.fill {
+      background: var(--orange);
+    }
+
+    .confidence.often_full span.fill {
+      background: var(--red);
+    }
+
+    .label {
       font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 6px;
+      color: var(--text-muted);
+      margin-top: 4px;
     }
 
-    .bar {
-      margin-top: 10px;
+    /* --- Transports --- */
+
+    .transports {
+      display: flex;
+      gap: 8px;
+      font-size: 20px;
+      margin: 16px 0;
+    }
+
+    /* --- Jauge type essence --- */
+
+    .fuel-gauge {
       height: 6px;
-      width: 100%;
-      background: rgba(255,255,255,0.1);
+      background: var(--bar-bg);
       border-radius: 999px;
       overflow: hidden;
     }
 
-    .bar-fill {
+    .fuel-gauge .level {
       height: 100%;
       border-radius: 999px;
-      transition: width 0.3s ease;
     }
+
+    .fuel-gauge.empty .level { width: 0%; }
+    .fuel-gauge.quarter .level { width: 25%; }
+    .fuel-gauge.half .level { width: 50%; }
+    .fuel-gauge.three_quarters .level { width: 75%; }
+    .fuel-gauge.full .level { width: 100%; }
+
+    .fuel-gauge .level.green { background: var(--green); }
+    .fuel-gauge .level.orange { background: var(--orange); }
+    .fuel-gauge .level.red { background: var(--red); }
   </style>
 </head>
 
 <body>
 
-<header>
-  <div class="title">Parkings relais · LIVE</div>
-  <div class="subtitle" id="updated">Mise à jour en temps réel</div>
+  <!-- Carte Parking V1 -->
+  <div class="parking-card">
 
-  <div class="tabs">
-    <div class="tab active">Autour de moi</div>
-    <div class="tab">+ de places</div>
-  </div>
-</header>
+    <div class="parking-name">Mermoz Pinel</div>
 
-<div class="list" id="list">Chargement…</div>
-
-<script>
-(async function () {
-  const res = await fetch("/api/parkings-relais");
-  const payload = await res.json();
-
-  console.log("PAYLOAD UTILISÉ :", payload);
-
-  const parkings = Array.isArray(payload.values) ? payload.values : [];
-  const list = document.getElementById("list");
-
-  // Mermoz Pinel toujours en premier
-  const ordered = [
-    ...parkings.filter(p => p.nom === "Mermoz Pinel"),
-    ...parkings.filter(p => p.nom !== "Mermoz Pinel")
-  ];
-
-  list.innerHTML = "";
-
-  for (const p of ordered) {
-    const libres = Number(p.nb_tot_place_dispo);
-    const capacite = Number(p.capacite);
-    const ratio = capacite > 0 ? libres / capacite : 0;
-
-    let color =
-      libres === 0 ? "var(--red)" :
-      ratio < 0.15 ? "var(--orange)" :
-      "var(--green)";
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <div class="parking-name">${p.nom}</div>
-      <div class="places">${libres}</div>
-      <div class="places-label">places libres</div>
-      <div class="capacity">Capacité ${capacite}</div>
-      <div class="bar">
-        <div class="bar-fill" style="width:${ratio * 100}%; background:${color}"></div>
+    <div class="availability">
+      <div>
+        <div class="free-places">6</div>
+        <div class="label">places libres</div>
       </div>
-    `;
 
-    list.appendChild(card);
-  }
-})();
-</script>
+      <!-- Échelle de confiance : 1 / 3 -->
+      <div class="confidence often_full">
+        <span class="fill"></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <!-- Transports accessibles -->
+    <div class="transports">
+      <span title="Métro">🚇</span>
+      <span title="Tram">🚊</span>
+      <span title="Bus">🚍</span>
+      <span title="Vélo'v">🚲</span>
+    </div>
+
+    <!-- Jauge de disponibilité -->
+    <div class="fuel-gauge quarter">
+      <div class="level red"></div>
+    </div>
+
+  </div>
 
 </body>
 </html>
