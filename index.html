@@ -33,7 +33,7 @@
       color: var(--text-main);
     }
 
-    /* ===== HEADER STICKY ===== */
+    /* ===== HEADER ===== */
     .page-header {
       position: sticky;
       top: 0;
@@ -51,7 +51,7 @@
       height: 36px;
       border-radius: 50%;
       background: var(--tcl-red);
-      color: white;
+      color: #fff;
       font-weight: 800;
       display: flex;
       align-items: center;
@@ -160,32 +160,39 @@
     .fill-3 span:nth-child(-n+3) { background: var(--green); }
     .fill-4 span:nth-child(-n+4) { background: var(--green); }
 
-    /* ===== TRANSPORTS ===== */
-    .transport-lines {
-      margin-top: 14px;
+    /* ===== TRANSPORT MODALITIES (GRID) ===== */
+    .transport-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.4;
+      text-align: center;
     }
 
-    .transport-group {
-      margin-top: 6px;
+    .transport-col {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
     }
 
     .badge {
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       border: 2.5px solid var(--mode-border);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      flex-shrink: 0;
       color: var(--text-main);
+    }
+
+    .lines {
+      line-height: 1.4;
+      word-wrap: break-word;
     }
 
     .error { padding: 24px; color: #ff6b6b; }
@@ -215,14 +222,14 @@ fetch("/api/parkings-relais")
   .then(data => {
     const root = document.getElementById("app");
     const loader = document.getElementById("loader");
+
     let parkings = data.values || [];
 
-    // ✅ Mermoz Pinel en tête
-    parkings = parkings.sort((a, b) => {
-      if (a.nom === "Mermoz Pinel") return -1;
-      if (b.nom === "Mermoz Pinel") return 1;
-      return 0;
-    });
+    // ✅ Mermoz Pinel toujours en tête
+    parkings = parkings.sort((a,b) =>
+      a.nom === "Mermoz Pinel" ? -1 :
+      b.nom === "Mermoz Pinel" ? 1 : 0
+    );
 
     loader.style.display = "none";
     root.style.display = "block";
@@ -252,18 +259,18 @@ fetch("/api/parkings-relais")
           </div>
         </div>
 
-        <div class="transport-lines">
-          <div class="transport-group">
+        <div class="transport-grid">
+          <div class="transport-col">
             <div class="badge">M</div>
-            ${(lines.metro && lines.metro.length) ? lines.metro.join(", ") : "—"}
+            <div class="lines">${(lines.metro && lines.metro.length) ? lines.metro.join("<br>") : "—"}</div>
           </div>
-          <div class="transport-group">
+          <div class="transport-col">
             <div class="badge">T</div>
-            ${(lines.tram && lines.tram.length) ? lines.tram.join(", ") : "—"}
+            <div class="lines">${(lines.tram && lines.tram.length) ? lines.tram.join("<br>") : "—"}</div>
           </div>
-          <div class="transport-group">
+          <div class="transport-col">
             <div class="badge">B</div>
-            ${(lines.bus && lines.bus.length) ? lines.bus.join(", ") : "—"}
+            <div class="lines">${(lines.bus && lines.bus.length) ? lines.bus.join("<br>") : "—"}</div>
           </div>
         </div>
       `;
