@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Parkings relais – places disponibles</title>
+  <title>Parkings relais TCL – places disponibles</title>
 
   <style>
     :root {
@@ -19,32 +19,56 @@
       --red: #ef4444;
 
       --gauge-bg: #2a2f3a;
+      --border: #1f2430;
       --mode-border: #e2e8f0;
+
+      --tcl-red: #e30613;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       margin: 0;
-      padding: 0;
       background: var(--bg);
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text-main);
     }
 
     /* ===== HEADER STICKY ===== */
-
     .page-header {
       position: sticky;
       top: 0;
       z-index: 10;
       background: var(--header);
-      padding: 16px;
-      border-bottom: 1px solid #1f2430;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tcl-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--tcl-red);
+      color: white;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
     }
 
     .page-header h1 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       margin: 0;
+      line-height: 1.3;
     }
 
     .page-header span {
@@ -52,8 +76,52 @@
       color: var(--text-muted);
     }
 
-    /* ===== LIST ===== */
+    /* ===== LOADER ===== */
+    .loader-container {
+      padding: 48px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
 
+    .loader {
+      display: flex;
+      gap: 8px;
+    }
+
+    .loader span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--tcl-red);
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .loader span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+    .loader span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0.3);
+        opacity: 0.4;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .loader-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ===== LIST ===== */
     #app {
       padding: 16px;
     }
@@ -96,7 +164,6 @@
     }
 
     /* ===== JAUGE REMPLISSAGE ===== */
-
     .fill-gauge {
       display: flex;
       gap: 4px;
@@ -115,7 +182,6 @@
     .fill-4 span:nth-child(-n+4) { background: var(--green); }
 
     /* ===== TRANSPORT LINES ===== */
-
     .transport-lines {
       margin-top: 14px;
       font-size: 13px;
@@ -124,24 +190,29 @@
     }
 
     .transport-group {
-      margin-top: 4px;
+      margin-top: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
     }
 
     .badge {
-      display: inline-block;
-      border: 2.5px solid var(--mode-border);
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      text-align: center;
-      line-height: 22px;
+      border: 2.5px solid var(--mode-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 800;
-      margin-right: 6px;
+      flex-shrink: 0;
       color: var(--text-main);
     }
 
     .error {
+      padding: 24px;
       color: #ff6b6b;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -150,21 +221,40 @@
 
   <!-- ===== HEADER ===== -->
   <header class="page-header">
-    <h1>Parkings relais <span>– places disponibles</span></h1>
+    <div class="tcl-logo">TCL</div>
+    <h1>Parkings relais TCL <span>– places disponibles</span></h1>
   </header>
 
-  <!-- ===== LIST ===== -->
-  <div id="app"></div>
+  <!-- ===== CONTENT ===== -->
+  <div id="content">
+
+    <!-- LOADER -->
+    <div class="loader-container" id="loader">
+      <div class="loader">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="loader-text">Chargement des disponibilités…</div>
+    </div>
+
+    <!-- LIST -->
+    <div id="app" style="display:none;"></div>
+
+  </div>
 
   <script>
     fetch("/api/parkings-relais")
       .then(r => r.json())
       .then(data => {
         const root = document.getElementById("app");
+        const loader = document.getElementById("loader");
+
         const parkings = data.values;
 
-        if (!Array.isArray(parkings)) {
-          root.innerHTML = "<div class='error'>Aucune donnée disponible</div>";
+        loader.style.display = "none";
+        root.style.display = "block";
+
+        if (!Array.isArray(parkings) || parkings.length === 0) {
+          root.innerHTML = "<div class='error'>Aucun parking relais disponible.</div>";
           return;
         }
 
@@ -197,14 +287,18 @@
             ${
               (lines.metro || lines.tram || lines.bus) ? `
               <div class="transport-lines">
-                ${lines.metro ? `<div class="transport-group"><span class="badge">M</span> ${lines.metro.join(", ")}</div>` : ``}
-                ${lines.tram ? `<div class="transport-group"><span class="badge">T</span> ${lines.tram.join(", ")}</div>` : ``}
-                ${lines.bus ? `<div class="transport-group"><span class="badge">B</span> ${lines.bus.join(", ")}</div>` : ``}
+                ${lines.metro ? `<div class="transport-group"><div class="badge">M</div>${lines.metro.join(", ")}</div>` : ``}
+                ${lines.tram ? `<div class="transport-group"><div class="badge">T</div>${lines.tram.join(", ")}</div>` : ``}
+                ${lines.bus ? `<div class="transport-group"><div class="badge">B</div>${lines.bus.join(", ")}</div>` : ``}
               </div>
             ` : ``}
           `;
           root.appendChild(card);
         });
+      })
+      .catch(() => {
+        document.getElementById("loader").innerHTML =
+          "<div class='error'>Erreur de chargement des données.</div>";
       });
   </script>
 
