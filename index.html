@@ -2,155 +2,118 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>P+R</title>
 
   <style>
-    :root {
-      --bg: #0f131a;
-      --card: #161b24;
-
-      --text-main: #ffffff;
-      --text-muted: #a5adbd;
-
-      --green: #22c55e;
-      --orange: #f59e0b;
-      --red: #ef4444;
-
-      --gauge-bg: #2a2f3a;
-
-      --mode-border: #e2e8f0;
-      --mode-text: #e2e8f0;
-    }
-
     body {
-      margin: 0;
-      padding: 16px;
-      background: var(--bg);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: var(--text-main);
+      background:#0f131a;
+      font-family:system-ui;
+      color:#fff;
+      padding:16px;
     }
-
-    .parking-card {
-      max-width: 380px;
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
+    .card {
+      background:#161b24;
+      padding:16px;
+      border-radius:14px;
+      max-width:380px;
+      margin-bottom:16px;
     }
-
-    .parking-name {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+    .name {
+      color:#a5adbd;
+      font-size:14px;
+      margin-bottom:10px;
     }
-
-    .availability-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .row {
+      display:flex;
+      align-items:center;
+      gap:12px;
     }
-
-    .free-places {
-      font-size: 32px;
-      font-weight: 700;
+    .count {
+      font-size:32px;
+      font-weight:700;
+      line-height:1.1;
     }
-
     .label {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 2px;
+      font-size:13px;
+      color:#a5adbd;
     }
-
-    .fill-gauge {
-      display: flex;
-      gap: 4px;
+    .gauge {
+      display:flex;
+      gap:4px;
     }
-
-    .fill-gauge span {
-      width: 10px;
-      height: 14px;
-      border-radius: 3px;
-      background: var(--gauge-bg);
+    .gauge span {
+      width:10px;
+      height:14px;
+      border-radius:3px;
+      background:#2a2f3a;
     }
+    .g1 span:nth-child(-n+1){background:#ef4444;}
+    .g2 span:nth-child(-n+2){background:#f59e0b;}
+    .g3 span:nth-child(-n+3){background:#22c55e;}
+    .g4 span:nth-child(-n+4){background:#22c55e;}
 
-    .fill-1 span:nth-child(-n+1) { background: var(--red); }
-    .fill-2 span:nth-child(-n+2) { background: var(--orange); }
-    .fill-3 span:nth-child(-n+3) { background: var(--green); }
-    .fill-4 span:nth-child(-n+4) { background: var(--green); }
-
-    .transports {
-      display: flex;
-      gap: 12px;
-      margin-top: 14px;
+    .modes {
+      display:flex;
+      gap:12px;
+      margin-top:14px;
     }
-
     .mode {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 2.5px solid var(--mode-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--mode-text);
+      width:30px;height:30px;
+      border:2.5px solid #e2e8f0;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
     }
   </style>
 </head>
 
 <body>
-
   <div id="app"></div>
 
-  <script>
-    fetch("/api/parkings-relais")
-      .then(res => res.json())
-      .then(data => {
-        const container = document.getElementById("app");
+<script>
+fetch("/api/parkings-relais")
+  .then(r => r.json())
+  .then(data => {
 
-        data.parkings.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "parking-card";
+    const parkings = data.values; // ✅ VRAIE structure
 
-          card.innerHTML = `
-            <div class="parking-name">${p.name}</div>
+    const root = document.getElementById("app");
 
-            <div class="availability-row">
-              <div>
-                <div class="free-places">${p.availability.free_places}</div>
-                <div class="label">places libres</div>
-              </div>
+    parkings.forEach(p => {
 
-              <div class="fill-gauge fill-${fillLevel(p.availability.fill_level)}">
-                <span></span><span></span><span></span><span></span>
-              </div>
-            </div>
+      const ratio = p.nb_tot_place_dispo / p.capacite;
+      let level = 0;
+      if (ratio > 0.75) level = 4;
+      else if (ratio > 0.5) level = 3;
+      else if (ratio > 0.25) level = 2;
+      else if (ratio > 0) level = 1;
 
-            <div class="transports">
-              ${p.transport_access.metro ? '<div class="mode">M</div>' : ''}
-              ${p.transport_access.tram ? '<div class="mode">T</div>' : ''}
-              ${p.transport_access.bus ? '<div class="mode">B</div>' : ''}
-              ${p.transport_access.velov ? '<div class="mode">V</div>' : ''}
-            </div>
-          `;
-
-          container.appendChild(card);
-        });
-      });
-
-    function fillLevel(level) {
-      return {
-        "empty": 0,
-        "quarter": 1,
-        "half": 2,
-        "three_quarters": 3,
-        "full": 4
-      }[level] ?? 0;
-    }
-  </script>
-
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="name">${p.nom}</div>
+        <div class="row">
+          <div>
+            <div class="count">${p.nb_tot_place_dispo}</div>
+            <div class="label">places libres</div>
+          </div>
+          <div class="gauge g${level}">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="modes">
+          <div class="mode">M</div>
+          <div class="mode">T</div>
+          <div class="mode">B</div>
+          <div class="mode">V</div>
+        </div>
+      `;
+      root.appendChild(card);
+    });
+  });
+</script>
 </body>
 </html>
-``
