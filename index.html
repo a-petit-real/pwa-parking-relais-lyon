@@ -2,118 +2,209 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>P+R</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parkings relais – places disponibles</title>
 
   <style>
-    body {
-      background:#0f131a;
-      font-family:system-ui;
-      color:#fff;
-      padding:16px;
-    }
-    .card {
-      background:#161b24;
-      padding:16px;
-      border-radius:14px;
-      max-width:380px;
-      margin-bottom:16px;
-    }
-    .name {
-      color:#a5adbd;
-      font-size:14px;
-      margin-bottom:10px;
-    }
-    .row {
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .count {
-      font-size:32px;
-      font-weight:700;
-      line-height:1.1;
-    }
-    .label {
-      font-size:13px;
-      color:#a5adbd;
-    }
-    .gauge {
-      display:flex;
-      gap:4px;
-    }
-    .gauge span {
-      width:10px;
-      height:14px;
-      border-radius:3px;
-      background:#2a2f3a;
-    }
-    .g1 span:nth-child(-n+1){background:#ef4444;}
-    .g2 span:nth-child(-n+2){background:#f59e0b;}
-    .g3 span:nth-child(-n+3){background:#22c55e;}
-    .g4 span:nth-child(-n+4){background:#22c55e;}
+    :root {
+      --bg: #0f131a;
+      --card: #161b24;
 
-    .modes {
-      display:flex;
-      gap:12px;
-      margin-top:14px;
+      --text-main: #ffffff;
+      --text-muted: #a5adbd;
+
+      --green: #22c55e;
+      --orange: #f59e0b;
+      --red: #ef4444;
+
+      --gauge-bg: #2a2f3a;
+
+      --mode-border: #e2e8f0;
+      --mode-text: #e2e8f0;
     }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+    }
+
+    /* ===== HEADER PAGE ===== */
+
+    .page-header {
+      max-width: 380px;
+      margin-bottom: 20px;
+    }
+
+    .page-header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .page-header span {
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* ===== CARD ===== */
+
+    .parking-card {
+      max-width: 380px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .parking-name {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .availability-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .availability-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .free-places {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== JAUGE DE REMPLISSAGE (0/4 → 4/4) ===== */
+
+    .fill-gauge {
+      display: flex;
+      gap: 4px;
+    }
+
+    .fill-gauge span {
+      width: 10px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--gauge-bg);
+    }
+
+    .fill-1 span:nth-child(-n+1) { background: var(--red); }
+    .fill-2 span:nth-child(-n+2) { background: var(--orange); }
+    .fill-3 span:nth-child(-n+3) { background: var(--green); }
+    .fill-4 span:nth-child(-n+4) { background: var(--green); }
+
+    /* ===== MODALITÉS ===== */
+
+    .transports {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
     .mode {
-      width:30px;height:30px;
-      border:2.5px solid #e2e8f0;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:800;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2.5px solid var(--mode-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--mode-text);
+      line-height: 1;
+    }
+
+    .error {
+      max-width: 380px;
+      color: #ff6b6b;
+      margin-top: 16px;
     }
   </style>
 </head>
 
 <body>
+
+  <!-- ===== TITRE ===== -->
+  <header class="page-header">
+    <h1>Parkings relais <span>– places disponibles</span></h1>
+  </header>
+
+  <!-- ===== LISTE ===== -->
   <div id="app"></div>
 
-<script>
-fetch("/api/parkings-relais")
-  .then(r => r.json())
-  .then(data => {
+  <script>
+    fetch("/api/parkings-relais")
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(data => {
+        const parkings = data.values;
+        const root = document.getElementById("app");
 
-    const parkings = data.values; // ✅ VRAIE structure
+        if (!Array.isArray(parkings) || parkings.length === 0) {
+          root.innerHTML = "<div class='error'>Aucun parking relais disponible.</div>";
+          console.error("Payload reçu :", data);
+          return;
+        }
 
-    const root = document.getElementById("app");
+        parkings.forEach(p => {
+          const ratio = p.nb_tot_place_dispo / p.capacite;
 
-    parkings.forEach(p => {
+          let level = 0;
+          if (ratio > 0.75) level = 4;
+          else if (ratio > 0.5) level = 3;
+          else if (ratio > 0.25) level = 2;
+          else if (ratio > 0) level = 1;
 
-      const ratio = p.nb_tot_place_dispo / p.capacite;
-      let level = 0;
-      if (ratio > 0.75) level = 4;
-      else if (ratio > 0.5) level = 3;
-      else if (ratio > 0.25) level = 2;
-      else if (ratio > 0) level = 1;
+          const card = document.createElement("div");
+          card.className = "parking-card";
+          card.innerHTML = `
+            <div class="parking-name">${p.nom}</div>
 
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="name">${p.nom}</div>
-        <div class="row">
-          <div>
-            <div class="count">${p.nb_tot_place_dispo}</div>
-            <div class="label">places libres</div>
-          </div>
-          <div class="gauge g${level}">
-            <span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="modes">
-          <div class="mode">M</div>
-          <div class="mode">T</div>
-          <div class="mode">B</div>
-          <div class="mode">V</div>
-        </div>
-      `;
-      root.appendChild(card);
-    });
-  });
-</script>
+            <div class="availability-row">
+              <div class="availability-text">
+                <div class="free-places">${p.nb_tot_place_dispo}</div>
+                <div class="label">places libres</div>
+              </div>
+
+              <div class="fill-gauge fill-${level}">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="transports">
+              <div class="mode">M</div>
+              <div class="mode">T</div>
+              <div class="mode">B</div>
+              <div class="mode">V</div>
+            </div>
+          `;
+          root.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById("app").innerHTML =
+          "<div class='error'>Erreur de chargement des données.</div>";
+        console.error(err);
+      });
+  </script>
+
 </body>
 </html>
+``
