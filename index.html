@@ -9,6 +9,7 @@
     :root {
       --bg: #0f131a;
       --card: #161b24;
+      --header: #0f131a;
 
       --text-main: #ffffff;
       --text-muted: #a5adbd;
@@ -18,24 +19,26 @@
       --red: #ef4444;
 
       --gauge-bg: #2a2f3a;
-
       --mode-border: #e2e8f0;
-      --mode-text: #e2e8f0;
     }
 
     body {
       margin: 0;
-      padding: 16px;
+      padding: 0;
       background: var(--bg);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, sans-serif;
       color: var(--text-main);
     }
 
-    /* ===== HEADER PAGE ===== */
+    /* ===== HEADER STICKY ===== */
 
     .page-header {
-      max-width: 380px;
-      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--header);
+      padding: 16px;
+      border-bottom: 1px solid #1f2430;
     }
 
     .page-header h1 {
@@ -49,7 +52,11 @@
       color: var(--text-muted);
     }
 
-    /* ===== CARD ===== */
+    /* ===== LIST ===== */
+
+    #app {
+      padding: 16px;
+    }
 
     .parking-card {
       max-width: 380px;
@@ -76,7 +83,7 @@
       flex-direction: column;
     }
 
-    .free-places {
+    .count {
       font-size: 32px;
       font-weight: 700;
       line-height: 1.1;
@@ -88,7 +95,7 @@
       margin-top: 2px;
     }
 
-    /* ===== JAUGE DE REMPLISSAGE (0/4 → 4/4) ===== */
+    /* ===== JAUGE REMPLISSAGE ===== */
 
     .fill-gauge {
       display: flex;
@@ -107,70 +114,69 @@
     .fill-3 span:nth-child(-n+3) { background: var(--green); }
     .fill-4 span:nth-child(-n+4) { background: var(--green); }
 
-    /* ===== MODALITÉS ===== */
+    /* ===== TRANSPORT LINES ===== */
 
-    .transports {
-      display: flex;
-      gap: 12px;
+    .transport-lines {
       margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
 
-    .mode {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
+    .transport-group {
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-block;
       border: 2.5px solid var(--mode-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      text-align: center;
+      line-height: 22px;
       font-weight: 800;
-      color: var(--mode-text);
-      line-height: 1;
+      margin-right: 6px;
+      color: var(--text-main);
     }
 
     .error {
-      max-width: 380px;
       color: #ff6b6b;
-      margin-top: 16px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ===== TITRE ===== -->
+  <!-- ===== HEADER ===== -->
   <header class="page-header">
     <h1>Parkings relais <span>– places disponibles</span></h1>
   </header>
 
-  <!-- ===== LISTE ===== -->
+  <!-- ===== LIST ===== -->
   <div id="app"></div>
 
   <script>
     fetch("/api/parkings-relais")
-      .then(res => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
+      .then(r => r.json())
       .then(data => {
-        const parkings = data.values;
         const root = document.getElementById("app");
+        const parkings = data.values;
 
-        if (!Array.isArray(parkings) || parkings.length === 0) {
-          root.innerHTML = "<div class='error'>Aucun parking relais disponible.</div>";
-          console.error("Payload reçu :", data);
+        if (!Array.isArray(parkings)) {
+          root.innerHTML = "<div class='error'>Aucune donnée disponible</div>";
           return;
         }
 
         parkings.forEach(p => {
           const ratio = p.nb_tot_place_dispo / p.capacite;
-
           let level = 0;
           if (ratio > 0.75) level = 4;
           else if (ratio > 0.5) level = 3;
           else if (ratio > 0.25) level = 2;
           else if (ratio > 0) level = 1;
+
+          const lines = p.transport_lines || {};
 
           const card = document.createElement("div");
           card.className = "parking-card";
@@ -179,7 +185,7 @@
 
             <div class="availability-row">
               <div class="availability-text">
-                <div class="free-places">${p.nb_tot_place_dispo}</div>
+                <div class="count">${p.nb_tot_place_dispo}</div>
                 <div class="label">places disponibles</div>
               </div>
 
@@ -188,20 +194,17 @@
               </div>
             </div>
 
-            <div class="transports">
-              <div class="mode">M</div>
-              <div class="mode">T</div>
-              <div class="mode">B</div>
-              <div class="mode">V</div>
-            </div>
+            ${
+              (lines.metro || lines.tram || lines.bus) ? `
+              <div class="transport-lines">
+                ${lines.metro ? `<div class="transport-group"><span class="badge">M</span> ${lines.metro.join(", ")}</div>` : ``}
+                ${lines.tram ? `<div class="transport-group"><span class="badge">T</span> ${lines.tram.join(", ")}</div>` : ``}
+                ${lines.bus ? `<div class="transport-group"><span class="badge">B</span> ${lines.bus.join(", ")}</div>` : ``}
+              </div>
+            ` : ``}
           `;
           root.appendChild(card);
         });
-      })
-      .catch(err => {
-        document.getElementById("app").innerHTML =
-          "<div class='error'>Erreur de chargement des données.</div>";
-        console.error(err);
       });
   </script>
 
