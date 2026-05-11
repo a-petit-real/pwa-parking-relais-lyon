@@ -189,25 +189,33 @@ body{
 .parking-card:hover{border-color:var(--dim);}
 .parking-card:active{transform:scale(.99);}
 
-/* ── ANIMATION SWIPE HINT — rotation card par card ── */
+/* ── ANIMATION SWIPE HINT — une card active à la fois via JS ── */
 .parking-card.is-full{opacity:.65;padding:12px 16px;}
 
-/*
-  Cycle global : 5s × N cards
-  Chaque card reçoit --swipe-i (0,1,2…) et calcule son propre délai.
-  Une seule card animée à la fois.
-  Séquence : dégradé scan (0→70%) → arc+flash (70→100%)
-*/
-
-/* Dégradé qui traverse la card de gauche à droite */
+/* Dégradé scan : traverse la card en 2.5s */
 @keyframes swipeScan{
-  0%{opacity:0;transform:translateX(-100%);}
-  8%{opacity:1;}
-  70%{opacity:1;transform:translateX(100%);}
-  71%,100%{opacity:0;transform:translateX(100%);}
+  0%{opacity:0;transform:translateX(-110%);}
+  10%{opacity:1;}
+  68%{opacity:1;transform:translateX(110%);}
+  69%,100%{opacity:0;transform:translateX(110%);}
 }
+/* Arc : s'allume après le scan */
+@keyframes swipeArc{
+  0%,65%{opacity:0;border-right-color:transparent;}
+  73%{opacity:.9;border-right-color:var(--swipe-color);}
+  92%{opacity:.9;border-right-color:var(--swipe-color);}
+  100%{opacity:0;border-right-color:transparent;}
+}
+/* Flash droit : accompagne l'arc */
+@keyframes swipeFlash{
+  0%,66%{opacity:0;}
+  73%{opacity:1;}
+  92%{opacity:1;}
+  100%{opacity:0;}
+}
+
 .swipe-scan{
-  position:absolute;inset:0;
+  position:absolute;inset:0;width:60%;
   background:linear-gradient(to right,
     transparent 0%,
     rgba(var(--swipe-rgb),.06) 30%,
@@ -215,43 +223,32 @@ body{
     rgba(var(--swipe-rgb),.06) 70%,
     transparent 100%
   );
-  width:60%;
-  animation:swipeScan calc(var(--swipe-n) * 5s) ease-in-out infinite;
-  animation-delay:calc(var(--swipe-i) * 5s);
-  pointer-events:none;
-}
-
-/* Arc sur le bord droit — s'allume après le scan */
-@keyframes swipeArc{
-  0%,68%{opacity:0;border-right-color:transparent;}
-  75%{opacity:.9;border-right-color:var(--swipe-color);}
-  92%{opacity:.9;border-right-color:var(--swipe-color);}
-  100%{opacity:0;border-right-color:transparent;}
+  pointer-events:none;opacity:0;
 }
 .swipe-arc{
   position:absolute;right:0;top:0;bottom:0;width:14px;
   border-right:1.5px solid transparent;
   border-radius:0 14px 14px 0;
-  animation:swipeArc calc(var(--swipe-n) * 5s) ease-in-out infinite;
-  animation-delay:calc(var(--swipe-i) * 5s);
-  pointer-events:none;
-}
-
-/* Flash dégradé droit — accompagne l'arc */
-@keyframes swipeFlash{
-  0%,69%{opacity:0;}
-  75%{opacity:1;}
-  92%{opacity:1;}
-  100%{opacity:0;}
+  pointer-events:none;opacity:0;
 }
 .swipe-flash{
   position:absolute;right:0;top:0;bottom:0;width:32px;
   background:linear-gradient(to left,rgba(var(--swipe-rgb),.09),transparent);
   border-radius:0 14px 14px 0;
-  animation:swipeFlash calc(var(--swipe-n) * 5s) ease-in-out infinite;
-  animation-delay:calc(var(--swipe-i) * 5s);
-  pointer-events:none;
+  pointer-events:none;opacity:0;
 }
+
+/* Classe active : déclenche l'animation une seule fois */
+.parking-card.swipe-active .swipe-scan{
+  animation:swipeScan 2.5s ease-in-out forwards;
+}
+.parking-card.swipe-active .swipe-arc{
+  animation:swipeArc 2.5s ease-in-out forwards;
+}
+.parking-card.swipe-active .swipe-flash{
+  animation:swipeFlash 2.5s ease-in-out forwards;
+}
+
 
 .parking-name{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:12px;}
 .parking-card.is-full .parking-name{margin-bottom:0;}
@@ -587,6 +584,36 @@ document.getElementById('map-view').addEventListener('touchend',e=>{
   if(e.changedTouches[0].clientX-mapTouchX>60)closeMap();
 },{passive:true});
 
+// ── ROTATION ANIMATION SWIPE ─────────────────────────────────────────────────
+let swipeRotationTimer = null;
+let swipeCurrentIdx    = 0;
+
+function startSwipeRotation() {
+  clearInterval(swipeRotationTimer);
+  swipeCurrentIdx = 0;
+  runSwipeTick();
+  // 2.5s animation + 0.3s pause entre deux cards
+  swipeRotationTimer = setInterval(runSwipeTick, 2800);
+}
+
+function runSwipeTick() {
+  const cards = document.querySelectorAll('#app .parking-card:not(.is-full)');
+  if (!cards.length) return;
+  // Retire la classe active de toutes
+  cards.forEach(c => {
+    c.classList.remove('swipe-active');
+    // Force reflow pour réinitialiser l'animation
+    c.querySelectorAll('.swipe-scan,.swipe-arc,.swipe-flash').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // reflow
+      el.style.animation = '';
+    });
+  });
+  swipeCurrentIdx = swipeCurrentIdx % cards.length;
+  cards[swipeCurrentIdx].classList.add('swipe-active');
+  swipeCurrentIdx++;
+}
+
 // ── BADGES ────────────────────────────────────────────────────────────────────
 function makeBadge(line,type){
   const t=TERMINUS[line];
@@ -602,7 +629,14 @@ function renderParking(p,compact=false,swipeIdx=0,swipeTotal=1){
   const badges=(arr,type)=>!arr.length?`<span class='badge none'>—</span>`:arr.map(l=>makeBadge(l,type)).join('');
   const card=document.createElement('div');
   card.className='parking-card'+(compact?' is-full':'');
-  if(!compact)card.addEventListener('click',()=>openMap(p.id));
+  if(!compact){
+    // Tap robuste : fonctionne sur mobile (touchend) et desktop (click)
+    let touchMoved=false;
+    card.addEventListener('touchstart',()=>{touchMoved=false;},{passive:true});
+    card.addEventListener('touchmove',()=>{touchMoved=true;},{passive:true});
+    card.addEventListener('touchend',e=>{if(!touchMoved){e.preventDefault();openMap(p.id);}});
+    card.addEventListener('click',()=>openMap(p.id));
+  }
 
   if(compact){
     card.innerHTML=`<div class='full-inline'><div class='parking-name'>${p.nom}</div><span class='full-tag'>Complet</span></div>`;
@@ -640,7 +674,6 @@ function renderList(parkings){
   const n=available.length||1;
   if(available.length){
     const t=document.createElement('div');t.className='section-title';t.textContent=`Disponibles (${available.length})`;root.appendChild(t);
-    // Passe l'index et le total pour que chaque card sache quand s'animer
     available.forEach((p,i)=>root.appendChild(renderParking(p,false,i,n)));
   }
   if(full.length){
@@ -650,6 +683,8 @@ function renderList(parkings){
     full.forEach(p=>content.appendChild(renderParking(p,true)));
     root.appendChild(toggle);root.appendChild(content);
   }
+  // Lance la rotation après le rendu
+  startSwipeRotation();
 }
 
 // ── FRAÎCHEUR ─────────────────────────────────────────────────────────────────
