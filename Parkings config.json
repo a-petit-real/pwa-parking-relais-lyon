@@ -1,0 +1,98 @@
+{
+  "BON": {
+    "nom": "Laurent Bonnevay",
+    "metro": ["A"],
+    "tram": ["T3"],
+    "chronobus": ["C8", "C11", "C15", "TB11"]
+  },
+  "VAI1": {
+    "nom": "Vaise 1",
+    "metro": ["D"],
+    "tram": [],
+    "chronobus": ["C6", "C14"]
+  },
+  "VAI2": {
+    "nom": "Vaise 2",
+    "metro": ["D"],
+    "tram": [],
+    "chronobus": ["C6", "C14", "C19", "C22", "C24", "C25"]
+  },
+  "GOR": {
+    "nom": "Gorge de Loup",
+    "metro": ["D"],
+    "tram": [],
+    "chronobus": ["C21", "C24"]
+  },
+  "CUI": {
+    "nom": "Cuire",
+    "metro": ["C"],
+    "tram": [],
+    "chronobus": []
+  },
+  "MERP": {
+    "nom": "Mermoz Pinel",
+    "metro": ["D"],
+    "tram": ["T6"],
+    "chronobus": ["C15"]
+  },
+  "PAR": {
+    "nom": "Parilly",
+    "metro": ["D"],
+    "tram": [],
+    "chronobus": []
+  },
+  "SOI": {
+    "nom": "Vaulx en Velin La Soie",
+    "metro": ["A"],
+    "tram": [],
+    "chronobus": ["C8", "C15", "TB11"]
+  },
+  "ALP": {
+    "nom": "Porte des Alpes",
+    "metro": [],
+    "tram": ["T2"],
+    "chronobus": ["C25"]
+  },
+  "BELA": {
+    "nom": "Saint-Priest Bel Air",
+    "metro": [],
+    "tram": ["T2"],
+    "chronobus": []
+  },
+  "MEYP": {
+    "nom": "Meyzieu les Panettes",
+    "metro": [],
+    "tram": ["T3"],
+    "chronobus": []
+  },
+  "MEYZ": {
+    "nom": "Meyzieu ZI",
+    "metro": [],
+    "tram": ["T3"],
+    "chronobus": []
+  },
+  "MEYG": {
+    "nom": "Meyzieu Gare",
+    "metro": [],
+    "tram": ["T3"],
+    "chronobus": []
+  },
+  "DECC": {
+    "nom": "Décines Centre",
+    "metro": [],
+    "tram": ["T3"],
+    "chronobus": []
+  },
+  "DECG": {
+    "nom": "Décines Grand Large",
+    "metro": [],
+    "tram": ["T3"],
+    "chronobus": []
+  },
+  "HFVE": {
+    "nom": "Hopital Feyzin Vénissieux",
+    "metro": [],
+    "tram": ["T4"],
+    "chronobus": ["C12"]
+  }
+}

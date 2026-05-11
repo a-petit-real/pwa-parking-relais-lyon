@@ -475,10 +475,9 @@ function renderParking(p) {
   const color    = colorFromRatio(ratio);
   const pct      = capacite > 0 ? Math.round(ratio * 100) : 0;
 
-  const lines = p.transport_lines || {};
-  const metro = lines.metro || [];
-  const tram  = lines.tram  || [];
-  const bus   = lines.bus   || [];
+  const metro      = p.metro      || [];
+  const tram       = p.tram       || [];
+  const chronobus  = p.chronobus  || [];
 
   function badges(arr, type) {
     if (!arr.length) return `<span class="badge none">—</span>`;
@@ -511,8 +510,8 @@ function renderParking(p) {
         <div class="line-badges">${badges(tram, 'tram')}</div>
       </div>
       <div class="transport-group">
-        <div class="transport-header">Bus</div>
-        <div class="line-badges">${badges(bus, 'bus')}</div>
+        <div class="transport-header">Chronobus</div>
+        <div class="line-badges">${badges(chronobus, 'bus')}</div>
       </div>
     </div>
   `;
