@@ -1,11 +1,21 @@
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const config = JSON.parse(
-  readFileSync(join(__dirname, "../parkings-config.json"), "utf8")
-);
+const config = {
+  "BON":  { metro: ["A"],    tram: ["T3"],       chronobus: ["C8", "C11", "C15", "TB11"] },
+  "VAI1": { metro: ["D"],    tram: [],            chronobus: ["C6", "C14"] },
+  "VAI2": { metro: ["D"],    tram: [],            chronobus: ["C6", "C14", "C19", "C22", "C24", "C25"] },
+  "GOR":  { metro: ["D"],    tram: [],            chronobus: ["C21", "C24"] },
+  "CUI":  { metro: ["C"],    tram: [],            chronobus: [] },
+  "MERP": { metro: ["D"],    tram: ["T6"],        chronobus: ["C15"] },
+  "PAR":  { metro: ["D"],    tram: [],            chronobus: [] },
+  "SOI":  { metro: ["A"],    tram: [],            chronobus: ["C8", "C15", "TB11"] },
+  "ALP":  { metro: [],       tram: ["T2"],        chronobus: ["C25"] },
+  "BELA": { metro: [],       tram: ["T2"],        chronobus: [] },
+  "MEYP": { metro: [],       tram: ["T3"],        chronobus: [] },
+  "MEYZ": { metro: [],       tram: ["T3"],        chronobus: [] },
+  "MEYG": { metro: [],       tram: ["T3"],        chronobus: [] },
+  "DECC": { metro: [],       tram: ["T3"],        chronobus: [] },
+  "DECG": { metro: [],       tram: ["T3"],        chronobus: [] },
+  "HFVE": { metro: [],       tram: ["T4"],        chronobus: ["C12"] },
+};
 
 export default async function handler(req, res) {
   try {
@@ -35,16 +45,15 @@ export default async function handler(req, res) {
 
     const json = await response.json();
 
-    // Enrichissement avec le mapping local
     const enriched = {
       ...json,
       values: (json.values || []).map((p) => {
         const extra = config[p.id] || {};
         return {
           ...p,
-          metro:      extra.metro      || [],
-          tram:       extra.tram       || [],
-          chronobus:  extra.chronobus  || [],
+          metro:     extra.metro     || [],
+          tram:      extra.tram      || [],
+          chronobus: extra.chronobus || [],
         };
       }),
     };
