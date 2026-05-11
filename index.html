@@ -8,25 +8,76 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 
 <style>
+/* ── THÈMES ─────────────────────────────────────────────────────────────── */
+
 :root {
+  --font: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+/* dark (défaut) */
+[data-theme="dark"] {
   --bg:       #0b0e14;
   --card:     #13181f;
   --border:   #1e2430;
   --text:     #f0f4ff;
   --muted:    #7a8499;
   --dim:      #3a4257;
-
   --green:    #22c55e;
   --orange:   #f59e0b;
   --red:      #ef4444;
   --accent:   #e30613;
-
   --gauge-bg: #1e2430;
-
-  --font:     'DM Sans', system-ui, sans-serif;
-  --mono:     'DM Mono', monospace;
+  --shadow:   0 2px 12px rgba(0,0,0,.4);
+  --badge-metro-bg: #1a1f3a; --badge-metro-bd: #3b4fa8; --badge-metro-tx: #99aaee;
+  --badge-tram-bg:  #1a2e1a; --badge-tram-bd:  #2d6b2d; --badge-tram-tx:  #6bc96b;
+  --badge-bus-bg:   #2a1e0e; --badge-bus-bd:   #7a4a10; --badge-bus-tx:   #c98830;
 }
 
+/* bright */
+[data-theme="bright"] {
+  --bg:       #f5f7fa;
+  --card:     #ffffff;
+  --border:   #e2e8f0;
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --dim:      #cbd5e1;
+  --green:    #16a34a;
+  --orange:   #d97706;
+  --red:      #dc2626;
+  --accent:   #e30613;
+  --gauge-bg: #e2e8f0;
+  --shadow:   0 2px 12px rgba(0,0,0,.08);
+  --badge-metro-bg: #eff2ff; --badge-metro-bd: #818cf8; --badge-metro-tx: #3730a3;
+  --badge-tram-bg:  #f0fdf4; --badge-tram-bd:  #4ade80; --badge-tram-tx:  #166534;
+  --badge-bus-bg:   #fffbeb; --badge-bus-bd:   #fbbf24; --badge-bus-tx:   #92400e;
+}
+
+/* pride */
+[data-theme="pride"] {
+  --bg:       #0d0d0d;
+  --card:     #161616;
+  --border:   #2a2a2a;
+  --text:     #ffffff;
+  --muted:    #888;
+  --dim:      #444;
+  --green:    #00d084;
+  --orange:   #ff9500;
+  --red:      #ff3b6e;
+  --accent:   #ff3b6e;
+  --gauge-bg: #2a2a2a;
+  --shadow:   0 2px 16px rgba(255,59,110,.15);
+  --badge-metro-bg: #1a0033; --badge-metro-bd: #c084fc; --badge-metro-tx: #e9d5ff;
+  --badge-tram-bg:  #001a33; --badge-tram-bd:  #38bdf8; --badge-tram-tx:  #bae6fd;
+  --badge-bus-bg:   #1a1a00; --badge-bus-bd:   #facc15; --badge-bus-tx:   #fef9c3;
+}
+
+/* random — les vars sont injectées par JS */
+[data-theme="random"] {
+  --shadow: 0 2px 12px rgba(0,0,0,.12);
+}
+
+/* ── RESET ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -34,6 +85,7 @@ body {
   font-family: var(--font);
   color: var(--text);
   min-height: 100vh;
+  transition: background .3s, color .3s;
 }
 
 /* ── HEADER ── */
@@ -47,6 +99,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: background .3s, border-color .3s;
 }
 
 .tcl-logo {
@@ -54,334 +107,280 @@ body {
   filter: brightness(0) invert(1);
   flex-shrink: 0;
 }
+[data-theme="bright"] .tcl-logo { filter: none; }
 
-.header-title {
-  flex: 1;
-  min-width: 0;
-}
-
+.header-title { flex: 1; min-width: 0; }
 .header-title h1 {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 15px; font-weight: 700; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-.header-title .subtitle {
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 400;
-}
+.header-title .subtitle { font-size: 11px; color: var(--muted); }
 
 .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 
-/* Indicateur de fraîcheur des données */
-.freshness {
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--muted);
-}
-
+.freshness { font-size: 11px; font-family: var(--mono); color: var(--muted); }
 .freshness.fresh  { color: var(--green); }
 .freshness.stale  { color: var(--orange); }
 
-.help-btn {
-  width: 26px;
-  height: 26px;
+.icon-btn {
+  width: 28px; height: 28px;
   border-radius: 50%;
   border: 1.5px solid var(--dim);
   color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
   cursor: pointer;
   background: none;
-  transition: border-color .15s, color .15s;
+  transition: border-color .15s, color .15s, transform .2s;
+  user-select: none;
 }
-.help-btn:hover { border-color: var(--text); color: var(--text); }
+.icon-btn:hover  { border-color: var(--text); color: var(--text); }
+.icon-btn:active { transform: scale(.88); }
 
 /* ── LOADER ── */
 #loader {
   padding: 80px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
 }
-
 .spinner {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 3px solid var(--border); border-top-color: var(--accent);
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .loader-text { color: var(--muted); font-size: 13px; }
 
 /* ── ERREUR ── */
 #error {
   display: none;
   margin: 32px 16px;
-  background: #1a0e0e;
-  border: 1px solid #3d1515;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
+  background: color-mix(in srgb, var(--red) 8%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+  border-radius: 12px; padding: 20px; text-align: center;
 }
-
-#error .error-icon { font-size: 28px; margin-bottom: 8px; }
+#error .error-icon  { font-size: 28px; margin-bottom: 8px; }
 #error .error-title { font-size: 15px; font-weight: 600; color: var(--red); margin-bottom: 6px; }
-#error .error-msg { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+#error .error-msg   { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
 
 .retry-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font);
-  cursor: pointer;
-  transition: opacity .15s;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; padding: 9px 20px;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; transition: opacity .15s;
 }
 .retry-btn:hover { opacity: .85; }
 
 /* ── LISTE ── */
 #app {
-  display: none;
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
+  display: none; padding: 16px;
+  max-width: 480px; margin: 0 auto;
 }
 
+/* Titre de section */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 8px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* Accordéon parkings complets */
+.section-full-toggle {
+  width: 100%; text-align: left;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+  transition: background .15s, color .15s;
+}
+.section-full-toggle:hover { background: var(--card); color: var(--text); }
+
+.toggle-arrow {
+  font-size: 10px; transition: transform .2s;
+  display: inline-block;
+}
+.section-full-toggle.open .toggle-arrow { transform: rotate(180deg); }
+
+.section-full-content {
+  display: none; animation: fadeIn .2s ease;
+}
+.section-full-content.open { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── CARTE PARKING ── */
 .parking-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: border-color .15s;
+  border-radius: 14px; padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  transition: border-color .15s, background .3s;
 }
 .parking-card:hover { border-color: var(--dim); }
-
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 14px;
+.parking-card.is-full {
+  opacity: .65;
+  padding: 12px 16px;
 }
 
-.parking-name {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
-  flex: 1;
-  min-width: 0;
+.parking-name { font-size: 14px; font-weight: 600; line-height: 1.3; margin-bottom: 12px; }
+.parking-card.is-full .parking-name { margin-bottom: 0; }
+
+/* badge "Complet" inline pour les cartes réduites */
+.full-inline {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.full-tag {
+  font-size: 11px; font-weight: 700; font-family: var(--mono);
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 25%, transparent);
+  border-radius: 5px; padding: 2px 7px;
 }
 
 /* ── DISPONIBILITÉ ── */
 .avail-block {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
 }
-
-.count-wrap {
-  flex-shrink: 0;
-}
-
 .count {
-  font-size: 36px;
-  font-weight: 700;
-  font-family: var(--mono);
-  line-height: 1;
+  font-size: 36px; font-weight: 700; font-family: var(--mono); line-height: 1; flex-shrink: 0;
 }
-
 .count.color-green  { color: var(--green); }
 .count.color-orange { color: var(--orange); }
 .count.color-red    { color: var(--red); }
 .count.color-empty  { color: var(--muted); }
 
-.avail-meta {
-  flex: 1;
-  min-width: 0;
-}
+.avail-meta { flex: 1; min-width: 0; }
+.avail-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 
-.avail-label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-/* Barre de progression continue */
 .progress-bar {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--gauge-bg);
-  overflow: hidden;
-  margin-bottom: 4px;
+  height: 6px; border-radius: 3px;
+  background: var(--gauge-bg); overflow: hidden; margin-bottom: 4px;
 }
-
 .progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width .4s ease;
+  height: 100%; border-radius: 3px; transition: width .4s ease;
 }
-
 .progress-fill.color-green  { background: var(--green); }
 .progress-fill.color-orange { background: var(--orange); }
 .progress-fill.color-red    { background: var(--red); }
 .progress-fill.color-empty  { background: var(--dim); }
-
-.progress-label {
-  font-size: 11px;
-  color: var(--muted);
-  font-family: var(--mono);
-}
+.progress-label { font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* ── TRANSPORT ── */
 .transport-section {
   border-top: 1px solid var(--border);
-  padding-top: 12px;
-  display: flex;
-  gap: 16px;
+  padding-top: 12px; display: flex; gap: 16px; flex-wrap: wrap;
 }
-
-.transport-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
+.transport-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .transport-header {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 2px;
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 2px;
 }
-
-.line-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+.line-badges { display: flex; flex-wrap: wrap; gap: 4px; }
 
 .badge {
-  height: 22px;
-  min-width: 22px;
-  padding: 0 5px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--mono);
-  border: 1.5px solid var(--dim);
-  color: var(--muted);
+  height: 22px; min-width: 22px; padding: 0 6px;
+  border-radius: 5px; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; font-family: var(--mono);
+  border: 1.5px solid var(--dim); color: var(--muted);
+  cursor: default; position: relative;
 }
+.badge.metro { background: var(--badge-metro-bg); border-color: var(--badge-metro-bd); color: var(--badge-metro-tx); }
+.badge.tram  { background: var(--badge-tram-bg);  border-color: var(--badge-tram-bd);  color: var(--badge-tram-tx); }
+.badge.bus   { background: var(--badge-bus-bg);   border-color: var(--badge-bus-bd);   color: var(--badge-bus-tx); }
+.badge.none  { opacity: .3; cursor: default; }
 
-.badge.metro  { background: #1a1f3a; border-color: #3b4fa8; color: #99aaee; }
-.badge.tram   { background: #1a2e1a; border-color: #2d6b2d; color: #6bc96b; }
-.badge.bus    { background: #2a1e0e; border-color: #7a4a10; color: #c98830; }
-.badge.none   { opacity: .35; }
+/* Badge cliquable */
+.badge.clickable { cursor: pointer; transition: transform .15s, opacity .15s; }
+.badge.clickable:hover  { opacity: .8; }
+.badge.clickable:active { transform: scale(.88); }
+
+/* Tooltip terminus */
+.terminus-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--bg);
+  font-size: 10px; font-weight: 600; font-family: var(--font);
+  white-space: nowrap; padding: 4px 8px;
+  border-radius: 6px; pointer-events: none;
+  opacity: 0; transition: opacity .15s;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.terminus-tooltip::after {
+  content: '';
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--text);
+}
+.badge.clickable:hover .terminus-tooltip,
+.badge.clickable.show-tip .terminus-tooltip { opacity: 1; }
 
 /* ── FOOTER ── */
 .page-footer {
-  padding: 8px 16px 24px;
-  font-size: 11px;
-  color: var(--muted);
-  text-align: center;
-  max-width: 480px;
-  margin: 0 auto;
+  padding: 8px 16px 32px; font-size: 11px; color: var(--muted);
+  text-align: center; max-width: 480px; margin: 0 auto;
 }
 
 /* ── MODAL ── */
 .modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.65);
-  z-index: 20;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 20;
+  align-items: flex-end; justify-content: center;
+  padding: 0;
 }
-
 .modal.open { display: flex; }
 
 .modal-content {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 380px;
-  width: 100%;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0; padding: 24px 24px 36px;
+  max-width: 480px; width: 100%;
+  animation: slideUp .25s ease;
 }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+.modal-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--dim); margin: 0 auto 20px;
+}
 .modal-content h2 { font-size: 17px; margin-bottom: 12px; }
-
 .modal-content p {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 10px;
+  font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px;
 }
-
-.modal-close {
-  margin-top: 16px;
-  text-align: right;
-}
-
+.modal-close { margin-top: 20px; text-align: right; }
 .modal-close button {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background .15s;
+  background: none; border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font);
+  font-size: 13px; font-weight: 600;
+  border-radius: 8px; padding: 8px 16px;
+  cursor: pointer; transition: background .15s;
 }
 .modal-close button:hover { background: var(--border); }
 </style>
 </head>
 
-<body>
+<body data-theme="dark">
 
 <header class="page-header">
-  <img
-    class="tcl-logo"
+  <img class="tcl-logo"
     src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg"
-    alt="TCL Sytral"
-    onerror="this.style.display='none'"
-  />
+    alt="TCL" onerror="this.style.display='none'"/>
   <div class="header-title">
     <h1>Parkings relais TCL</h1>
     <div class="subtitle">Places disponibles en temps réel</div>
   </div>
   <div class="header-actions">
     <span class="freshness" id="freshness"></span>
-    <button class="help-btn" onclick="openHelp()" aria-label="Aide">?</button>
+    <button class="icon-btn" id="themeBtn" onclick="cycleTheme()" title="Changer de thème">🌙</button>
+    <button class="icon-btn" onclick="openHelp()" aria-label="Aide">?</button>
   </div>
 </header>
 
@@ -407,29 +406,143 @@ body {
 
 <div id="helpModal" class="modal" onclick="handleModalClick(event)">
   <div class="modal-content">
-    <h2>À propos de ce service</h2>
+    <div class="modal-handle"></div>
+    <h2>À propos</h2>
+    <p>Places disponibles en temps réel dans les parkings relais TCL de Lyon.</p>
     <p>
-      Cette application affiche en temps réel les places disponibles
-      dans les parkings relais du réseau TCL de Lyon.
-    </p>
-    <p>
-      La barre de couleur indique le taux de remplissage :
-      <strong style="color:var(--green)">vert</strong> = disponible,
-      <strong style="color:var(--orange)">orange</strong> = se remplit,
+      Barre de couleur : <strong style="color:var(--green)">vert</strong> = dispo ·
+      <strong style="color:var(--orange)">orange</strong> = se remplit ·
       <strong style="color:var(--red)">rouge</strong> = quasi complet.
     </p>
-    <p>
-      Les données proviennent de l'open data du Grand Lyon
-      et sont rafraîchies toutes les 60 secondes.
-    </p>
-    <div class="modal-close">
-      <button onclick="closeHelp()">Fermer</button>
-    </div>
+    <p>Tapotez un badge de ligne pour voir les terminus.</p>
+    <p>Données rafraîchies toutes les 60 secondes depuis l'open data Grand Lyon.</p>
+    <div class="modal-close"><button onclick="closeHelp()">Fermer</button></div>
   </div>
 </div>
 
 <script>
-// ── Utilitaires ──────────────────────────────────────────────────────────────
+// ── THÈMES ───────────────────────────────────────────────────────────────────
+
+const THEMES = [
+  { id: 'dark',   icon: '🌙', label: 'Sombre' },
+  { id: 'bright', icon: '☀️', label: 'Clair' },
+  { id: 'pride',  icon: '🏳️‍🌈', label: 'Pride' },
+  { id: 'random', icon: '🎲', label: 'Aléatoire' },
+];
+
+let themeIndex = 0;
+
+// Palette pastel moderne pour le mode random
+const PASTEL_PALETTES = [
+  { bg:'#fdf6f0', card:'#fff9f5', border:'#f0e0d0', text:'#3d1f0a', muted:'#a07860', dim:'#d8b8a0', accent:'#e86a30', green:'#5cb85c', orange:'#f0ad4e', red:'#d9534f', gauge:'#f0e0d0' },
+  { bg:'#f0f4ff', card:'#f8faff', border:'#d8e4f8', text:'#0a1a3d', muted:'#607090', dim:'#a8c0e0', accent:'#3060e8', green:'#2d9e6b', orange:'#e8a020', red:'#e04060', gauge:'#d8e4f8' },
+  { bg:'#f0fff8', card:'#f8fffc', border:'#c8eedd', text:'#0a2a1a', muted:'#508060', dim:'#90d0b0', accent:'#20a870', green:'#1a9e50', orange:'#d8a030', red:'#e05060', gauge:'#c8eedd' },
+  { bg:'#fdf0ff', card:'#fef8ff', border:'#eac8f8', text:'#2a0a3d', muted:'#8060a0', dim:'#c8a0e0', accent:'#9030e0', green:'#60b860', orange:'#e090a0', red:'#e03080', gauge:'#eac8f8' },
+  { bg:'#fff8f0', card:'#fffcf8', border:'#f8e0c8', text:'#3d1a00', muted:'#a07050', dim:'#e0c0a0', accent:'#f07030', green:'#60b870', orange:'#e8a840', red:'#e05040', gauge:'#f8e0c8' },
+];
+
+function applyRandomTheme() {
+  const p = PASTEL_PALETTES[Math.floor(Math.random() * PASTEL_PALETTES.length)];
+  const root = document.documentElement;
+  root.style.setProperty('--bg',       p.bg);
+  root.style.setProperty('--card',     p.card);
+  root.style.setProperty('--border',   p.border);
+  root.style.setProperty('--text',     p.text);
+  root.style.setProperty('--muted',    p.muted);
+  root.style.setProperty('--dim',      p.dim);
+  root.style.setProperty('--accent',   p.accent);
+  root.style.setProperty('--green',    p.green);
+  root.style.setProperty('--orange',   p.orange);
+  root.style.setProperty('--red',      p.red);
+  root.style.setProperty('--gauge-bg', p.gauge);
+  root.style.setProperty('--badge-metro-bg', p.bg);
+  root.style.setProperty('--badge-metro-bd', p.accent);
+  root.style.setProperty('--badge-metro-tx', p.text);
+  root.style.setProperty('--badge-tram-bg',  p.bg);
+  root.style.setProperty('--badge-tram-bd',  p.green);
+  root.style.setProperty('--badge-tram-tx',  p.text);
+  root.style.setProperty('--badge-bus-bg',   p.bg);
+  root.style.setProperty('--badge-bus-bd',   p.orange);
+  root.style.setProperty('--badge-bus-tx',   p.text);
+}
+
+function clearRandomVars() {
+  const props = ['--bg','--card','--border','--text','--muted','--dim','--accent','--green','--orange','--red','--gauge-bg',
+    '--badge-metro-bg','--badge-metro-bd','--badge-metro-tx',
+    '--badge-tram-bg','--badge-tram-bd','--badge-tram-tx',
+    '--badge-bus-bg','--badge-bus-bd','--badge-bus-tx'];
+  props.forEach(p => document.documentElement.style.removeProperty(p));
+}
+
+function cycleTheme() {
+  themeIndex = (themeIndex + 1) % THEMES.length;
+  applyTheme(themeIndex);
+}
+
+function applyTheme(idx) {
+  const t = THEMES[idx];
+  document.body.setAttribute('data-theme', t.id);
+  document.getElementById('themeBtn').textContent = t.icon;
+  document.getElementById('themeBtn').title = `Thème : ${t.label}`;
+  if (t.id === 'random') {
+    applyRandomTheme();
+  } else {
+    clearRandomVars();
+  }
+  localStorage.setItem('theme', idx);
+}
+
+// Restaurer le thème sauvegardé
+(function () {
+  const saved = parseInt(localStorage.getItem('theme') ?? '0', 10);
+  themeIndex = isNaN(saved) ? 0 : saved % THEMES.length;
+  applyTheme(themeIndex);
+})();
+
+// ── TERMINUS ─────────────────────────────────────────────────────────────────
+
+const TERMINUS = {
+  // Métro
+  'A':   ['Perrache / Gare de Vénissieux', 'Vaulx-en-Velin La Soie'],
+  'B':   ['Charpennes', 'Gare d\'Oullins'],
+  'C':   ['Cuire', 'Hôtel de Ville'],
+  'D':   ['Gare de Vaise', 'Gare de Vénissieux'],
+  // Tram
+  'T1':  ['Debourg', 'IUT Feyssine'],
+  'T2':  ['Perrache', 'Saint-Priest Bel-Air'],
+  'T3':  ['Meyzieu les Panettes', 'Part-Dieu Villette'],
+  'T4':  ['Hôpital Feyzin-Vénissieux', 'Mendès France'],
+  'T6':  ['Hôtel de Ville Louis Pradel', 'Décines OL Vallée'],
+  // Chronobus
+  'C1':  ['Gare de Vaise', 'Grange Blanche'],
+  'C2':  ['Écully', 'Bron-Parilly'],
+  'C3':  ['Vaise', 'Meyzieu ZI'],
+  'C4':  ['Croix-Rousse', 'Jean Macé'],
+  'C5':  ['Gare Saint-Paul', 'Bron Les Essarts'],
+  'C6':  ['Vaise', 'Porte des Alpes'],
+  'C7':  ['Collège Lacassagne', 'Vaulx-en-Velin Gare'],
+  'C8':  ['Gare de Vaise', 'Saint-Priest Bel-Air'],
+  'C9':  ['Perrache', 'Meyzieu ZI'],
+  'C10': ['Part-Dieu', 'Rillieux-la-Pape'],
+  'C11': ['Part-Dieu', 'Bron Les Essarts'],
+  'C12': ['Perrache', 'Saint-Fons / Feyzin'],
+  'C13': ['Part-Dieu', 'Oullins Centre'],
+  'C14': ['Gare de Vaise', 'Bron Parilly'],
+  'C15': ['Perrache', 'Vaulx-en-Velin La Soie'],
+  'C16': ['Gare de Vaise', 'Vaulx-en-Velin La Soie'],
+  'C17': ['Hôtel de Ville', 'Chassieu'],
+  'C18': ['Gare de Vaise', 'Givors Centre'],
+  'C19': ['Gare de Vaise', 'Mions Centre'],
+  'C20': ['Perrache', 'Saint-Priest Centre'],
+  'C21': ['Gorge de Loup', 'Tassin Centre'],
+  'C22': ['Gare de Vaise', 'Brignais Centre'],
+  'C23': ['Perrache', 'Oullins Gare'],
+  'C24': ['Gare de Vaise', 'Francheville'],
+  'C25': ['Mermoz-Pinel', 'Porte des Alpes'],
+  'TB11':['Gare de Vaise', 'Laurent Bonnevay'],
+};
+
+// ── UTILITAIRES ───────────────────────────────────────────────────────────────
 
 function colorFromRatio(ratio) {
   if (ratio <= 0)    return 'empty';
@@ -439,89 +552,152 @@ function colorFromRatio(ratio) {
 }
 
 function formatFreshness(date) {
-  const secs = Math.round((Date.now() - date) / 1000);
-  if (secs < 5)  return 'À l\'instant';
-  if (secs < 60) return `${secs}s`;
-  return `${Math.round(secs/60)} min`;
+  const s = Math.round((Date.now() - date) / 1000);
+  if (s < 5)  return 'À l\'instant';
+  if (s < 60) return `${s}s`;
+  return `${Math.round(s/60)} min`;
 }
 
-// ── Gestion des vues ─────────────────────────────────────────────────────────
+// ── VUES ─────────────────────────────────────────────────────────────────────
 
-function showLoader()  {
+function showLoader() {
   document.getElementById('loader').style.display = 'flex';
   document.getElementById('error').style.display  = 'none';
   document.getElementById('app').style.display    = 'none';
 }
-
 function showError(msg) {
   document.getElementById('loader').style.display = 'none';
   document.getElementById('error').style.display  = 'block';
   document.getElementById('app').style.display    = 'none';
   if (msg) document.getElementById('error-msg').textContent = msg;
 }
-
 function showApp() {
   document.getElementById('loader').style.display = 'none';
   document.getElementById('error').style.display  = 'none';
   document.getElementById('app').style.display    = 'block';
 }
 
-// ── Rendu des cartes ─────────────────────────────────────────────────────────
+// ── RENDU BADGE avec terminus ─────────────────────────────────────────────────
 
-function renderParking(p) {
+function makeBadge(line, type) {
+  const t = TERMINUS[line];
+  if (!t) return `<span class="badge ${type}">${line}</span>`;
+  return `
+    <span class="badge ${type} clickable" onclick="toggleTip(this)" title="${t[0]} ↔ ${t[1]}">
+      ${line}
+      <span class="terminus-tooltip">${t[0]} ↔ ${t[1]}</span>
+    </span>`;
+}
+
+function toggleTip(el) {
+  // Sur mobile : toggle la classe show-tip
+  el.classList.toggle('show-tip');
+  // Ferme les autres tooltips ouverts
+  document.querySelectorAll('.badge.show-tip').forEach(b => {
+    if (b !== el) b.classList.remove('show-tip');
+  });
+}
+
+// ── RENDU CARTE ───────────────────────────────────────────────────────────────
+
+function renderParking(p, compact = false) {
   const dispo    = p.nb_tot_place_dispo ?? 0;
   const capacite = p.capacite ?? 0;
   const ratio    = capacite > 0 ? dispo / capacite : 0;
   const color    = colorFromRatio(ratio);
   const pct      = capacite > 0 ? Math.round(ratio * 100) : 0;
 
-  const metro      = p.metro      || [];
-  const tram       = p.tram       || [];
-  const chronobus  = p.chronobus  || [];
+  const metro     = p.metro     || [];
+  const tram      = p.tram      || [];
+  const chronobus = p.chronobus || [];
 
   function badges(arr, type) {
     if (!arr.length) return `<span class="badge none">—</span>`;
-    return arr.map(l => `<span class="badge ${type}">${l}</span>`).join('');
+    return arr.map(l => makeBadge(l, type)).join('');
   }
 
   const card = document.createElement('div');
-  card.className = 'parking-card';
-  card.innerHTML = `
-    <div class="parking-name">${p.nom}</div>
-    <div class="avail-block">
-      <div class="count-wrap">
+  card.className = 'parking-card' + (compact ? ' is-full' : '');
+
+  if (compact) {
+    // Version compacte : nom + tag "Complet"
+    card.innerHTML = `
+      <div class="full-inline">
+        <div class="parking-name">${p.nom}</div>
+        <span class="full-tag">Complet</span>
+      </div>`;
+  } else {
+    card.innerHTML = `
+      <div class="parking-name">${p.nom}</div>
+      <div class="avail-block">
         <div class="count color-${color}">${dispo}</div>
-      </div>
-      <div class="avail-meta">
-        <div class="avail-label">places disponibles / ${capacite}</div>
-        <div class="progress-bar">
-          <div class="progress-fill color-${color}" style="width:${pct}%"></div>
+        <div class="avail-meta">
+          <div class="avail-label">places disponibles / ${capacite}</div>
+          <div class="progress-bar">
+            <div class="progress-fill color-${color}" style="width:${pct}%"></div>
+          </div>
+          <div class="progress-label">${pct}% disponible</div>
         </div>
-        <div class="progress-label">${pct}% disponible</div>
       </div>
-    </div>
-    <div class="transport-section">
-      <div class="transport-group">
-        <div class="transport-header">Métro</div>
-        <div class="line-badges">${badges(metro, 'metro')}</div>
-      </div>
-      <div class="transport-group">
-        <div class="transport-header">Tram</div>
-        <div class="line-badges">${badges(tram, 'tram')}</div>
-      </div>
-      <div class="transport-group">
-        <div class="transport-header">Chronobus</div>
-        <div class="line-badges">${badges(chronobus, 'bus')}</div>
-      </div>
-    </div>
-  `;
+      <div class="transport-section">
+        <div class="transport-group">
+          <div class="transport-header">Métro</div>
+          <div class="line-badges">${badges(metro, 'metro')}</div>
+        </div>
+        <div class="transport-group">
+          <div class="transport-header">Tram</div>
+          <div class="line-badges">${badges(tram, 'tram')}</div>
+        </div>
+        <div class="transport-group">
+          <div class="transport-header">Chronobus</div>
+          <div class="line-badges">${badges(chronobus, 'bus')}</div>
+        </div>
+      </div>`;
+  }
+
   return card;
 }
 
-// ── Fraîcheur des données ────────────────────────────────────────────────────
+// ── RENDU LISTE ───────────────────────────────────────────────────────────────
+
+function renderList(parkings) {
+  const root = document.getElementById('app');
+  root.innerHTML = '';
+
+  const available = parkings.filter(p => (p.nb_tot_place_dispo ?? 0) > 0);
+  const full      = parkings.filter(p => (p.nb_tot_place_dispo ?? 0) <= 0);
+
+  // Parkings disponibles
+  if (available.length) {
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = `Disponibles (${available.length})`;
+    root.appendChild(title);
+    available.forEach(p => root.appendChild(renderParking(p, false)));
+  }
+
+  // Parkings complets — accordéon
+  if (full.length) {
+    const toggle = document.createElement('button');
+    toggle.className = 'section-full-toggle';
+    toggle.innerHTML = `Complets (${full.length}) <span class="toggle-arrow">▾</span>`;
+    toggle.onclick = () => {
+      toggle.classList.toggle('open');
+      content.classList.toggle('open');
+    };
+
+    const content = document.createElement('div');
+    content.className = 'section-full-content';
+    full.forEach(p => content.appendChild(renderParking(p, true)));
+
+    root.appendChild(toggle);
+    root.appendChild(content);
+  }
+}
+
+// ── FRAÎCHEUR ─────────────────────────────────────────────────────────────────
 
 let lastFetch = null;
-let freshnessTimer = null;
 
 function updateFreshness() {
   if (!lastFetch) return;
@@ -531,17 +707,17 @@ function updateFreshness() {
   el.className   = 'freshness ' + (secs < 90 ? 'fresh' : 'stale');
 }
 
-// ── Chargement des données ───────────────────────────────────────────────────
+setInterval(updateFreshness, 1000);
+
+// ── DONNÉES ───────────────────────────────────────────────────────────────────
 
 let refreshInterval = null;
 
 async function loadData(silent = false) {
   if (!silent) showLoader();
-
   try {
     const res = await fetch('/api/parkings-relais');
     if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
-
     const data = await res.json();
     if (data.error) throw new Error(data.error);
 
@@ -549,33 +725,22 @@ async function loadData(silent = false) {
       .slice()
       .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 
-    const root = document.getElementById('app');
-    root.innerHTML = '';
-    parkings.forEach(p => root.appendChild(renderParking(p)));
-
+    renderList(parkings);
     lastFetch = Date.now();
     updateFreshness();
     showApp();
-
   } catch (err) {
-    if (!silent) {
-      showError(err.message || 'Impossible de charger les disponibilités.');
-    }
+    if (!silent) showError(err.message || 'Impossible de charger les disponibilités.');
     console.error('[parking]', err);
   }
 }
-
-// ── Auto-refresh toutes les 60s ──────────────────────────────────────────────
 
 function startAutoRefresh() {
   clearInterval(refreshInterval);
   refreshInterval = setInterval(() => loadData(true), 60_000);
 }
 
-// Mettre à jour l'affichage de fraîcheur chaque seconde
-setInterval(updateFreshness, 1_000);
-
-// ── Modal ────────────────────────────────────────────────────────────────────
+// ── MODAL ─────────────────────────────────────────────────────────────────────
 
 function openHelp()  { document.getElementById('helpModal').classList.add('open'); }
 function closeHelp() { document.getElementById('helpModal').classList.remove('open'); }
@@ -583,7 +748,14 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('helpModal')) closeHelp();
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// Ferme les tooltips au tap ailleurs
+document.addEventListener('click', e => {
+  if (!e.target.classList.contains('badge')) {
+    document.querySelectorAll('.badge.show-tip').forEach(b => b.classList.remove('show-tip'));
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
 
 loadData();
 startAutoRefresh();
