@@ -189,52 +189,68 @@ body{
 .parking-card:hover{border-color:var(--dim);}
 .parking-card:active{transform:scale(.99);}
 
-/* ── ANIMATION SWIPE HINT ── */
+/* ── ANIMATION SWIPE HINT — rotation card par card ── */
 .parking-card.is-full{opacity:.65;padding:12px 16px;}
 
-/* Rangées de chevrons */
-.chev-row{position:absolute;right:9px;display:flex;gap:2px;align-items:center;pointer-events:none;}
-.chev-row span{font-size:9px;display:block;}
+/*
+  Cycle global : 5s × N cards
+  Chaque card reçoit --swipe-i (0,1,2…) et calcule son propre délai.
+  Une seule card animée à la fois.
+  Séquence : dégradé scan (0→70%) → arc+flash (70→100%)
+*/
 
-/* Cycle 4.5s : row1 top (0-30%) → row2 mid (33-63%) → row3 bot (66-96%) → arc+flash fin (93-100%) */
-@keyframes ch1a{0%{opacity:0;transform:translateX(-4px);}8%{opacity:1;transform:translateX(0);}22%{opacity:1;}30%{opacity:0;}100%{opacity:0;}}
-@keyframes ch1b{3%{opacity:0;}11%{opacity:.55;}22%{opacity:.55;}30%{opacity:0;}100%{opacity:0;}}
-@keyframes ch1c{6%{opacity:0;}14%{opacity:.25;}22%{opacity:.25;}30%{opacity:0;}100%{opacity:0;}}
+/* Dégradé qui traverse la card de gauche à droite */
+@keyframes swipeScan{
+  0%{opacity:0;transform:translateX(-100%);}
+  8%{opacity:1;}
+  70%{opacity:1;transform:translateX(100%);}
+  71%,100%{opacity:0;transform:translateX(100%);}
+}
+.swipe-scan{
+  position:absolute;inset:0;
+  background:linear-gradient(to right,
+    transparent 0%,
+    rgba(var(--swipe-rgb),.06) 30%,
+    rgba(var(--swipe-rgb),.12) 50%,
+    rgba(var(--swipe-rgb),.06) 70%,
+    transparent 100%
+  );
+  width:60%;
+  animation:swipeScan calc(var(--swipe-n) * 5s) ease-in-out infinite;
+  animation-delay:calc(var(--swipe-i) * 5s);
+  pointer-events:none;
+}
 
-@keyframes ch2a{33%{opacity:0;transform:translateX(-4px);}41%{opacity:1;transform:translateX(0);}55%{opacity:1;}63%{opacity:0;}100%{opacity:0;}}
-@keyframes ch2b{36%{opacity:0;}44%{opacity:.55;}55%{opacity:.55;}63%{opacity:0;}100%{opacity:0;}}
-@keyframes ch2c{39%{opacity:0;}47%{opacity:.25;}55%{opacity:.25;}63%{opacity:0;}100%{opacity:0;}}
-
-@keyframes ch3a{66%{opacity:0;transform:translateX(-4px);}74%{opacity:1;transform:translateX(0);}88%{opacity:1;}96%{opacity:0;}100%{opacity:0;}}
-@keyframes ch3b{69%{opacity:0;}77%{opacity:.55;}88%{opacity:.55;}96%{opacity:0;}100%{opacity:0;}}
-@keyframes ch3c{72%{opacity:0;}80%{opacity:.25;}88%{opacity:.25;}96%{opacity:0;}100%{opacity:0;}}
-
-/* Arc — s'allume UNE SEULE FOIS en fin de cycle (après row3) */
+/* Arc sur le bord droit — s'allume après le scan */
 @keyframes swipeArc{
-  0%,88%{opacity:0;border-right-color:transparent;}
-  93%{opacity:.85;border-right-color:var(--swipe-color);}
+  0%,68%{opacity:0;border-right-color:transparent;}
+  75%{opacity:.9;border-right-color:var(--swipe-color);}
+  92%{opacity:.9;border-right-color:var(--swipe-color);}
   100%{opacity:0;border-right-color:transparent;}
 }
 .swipe-arc{
   position:absolute;right:0;top:0;bottom:0;width:14px;
   border-right:1.5px solid transparent;
   border-radius:0 14px 14px 0;
-  animation:swipeArc 4.5s ease-in-out infinite;
+  animation:swipeArc calc(var(--swipe-n) * 5s) ease-in-out infinite;
+  animation-delay:calc(var(--swipe-i) * 5s);
   pointer-events:none;
 }
 
-/* Flash dégradé — même timing que l'arc, très subtil */
+/* Flash dégradé droit — accompagne l'arc */
 @keyframes swipeFlash{
-  0%,89%{opacity:0;}
-  93%{opacity:1;}
+  0%,69%{opacity:0;}
+  75%{opacity:1;}
+  92%{opacity:1;}
   100%{opacity:0;}
 }
 .swipe-flash{
-  position:absolute;right:0;top:0;bottom:0;width:30px;
+  position:absolute;right:0;top:0;bottom:0;width:32px;
   background:linear-gradient(to left,rgba(var(--swipe-rgb),.09),transparent);
-  animation:swipeFlash 4.5s ease-in-out infinite;
-  pointer-events:none;
   border-radius:0 14px 14px 0;
+  animation:swipeFlash calc(var(--swipe-n) * 5s) ease-in-out infinite;
+  animation-delay:calc(var(--swipe-i) * 5s);
+  pointer-events:none;
 }
 
 .parking-name{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:12px;}
@@ -580,22 +596,20 @@ function makeBadge(line,type){
 function toggleTip(el){el.classList.toggle('show-tip');document.querySelectorAll('.badge.show-tip').forEach(b=>{if(b!==el)b.classList.remove('show-tip');});}
 
 // ── RENDU LISTE ───────────────────────────────────────────────────────────────
-function renderParking(p,compact=false){
+function renderParking(p,compact=false,swipeIdx=0,swipeTotal=1){
   const dispo=p.nb_tot_place_dispo??0,cap=p.capacite??0;
   const ratio=cap>0?dispo/cap:0,color=colorFromRatio(ratio),pct=Math.round(ratio*100);
   const badges=(arr,type)=>!arr.length?`<span class='badge none'>—</span>`:arr.map(l=>makeBadge(l,type)).join('');
   const card=document.createElement('div');
   card.className='parking-card'+(compact?' is-full':'');
   if(!compact)card.addEventListener('click',()=>openMap(p.id));
-  // Couleur CSS var pour l'animation swipe
-  const swipeColor = color==='green' ? '#22c55e' : color==='orange' ? '#f59e0b' : color==='red' ? '#ef4444' : '#7a8499';
-  const swipeRgb   = color==='green' ? '34,197,94' : color==='orange' ? '245,158,11' : color==='red' ? '239,68,68' : '122,132,153';
-  const swipeDelay = (Math.random()*2).toFixed(2)+'s'; // décale les cards entre elles
 
   if(compact){
     card.innerHTML=`<div class='full-inline'><div class='parking-name'>${p.nom}</div><span class='full-tag'>Complet</span></div>`;
   } else {
-    card.style.paddingRight='32px';
+    const swipeColor=color==='green'?'#22c55e':color==='orange'?'#f59e0b':color==='red'?'#ef4444':'#7a8499';
+    const swipeRgb  =color==='green'?'34,197,94':color==='orange'?'245,158,11':color==='red'?'239,68,68':'122,132,153';
+    card.style.cssText+=`;--swipe-color:${swipeColor};--swipe-rgb:${swipeRgb};--swipe-i:${swipeIdx};--swipe-n:${swipeTotal};`;
     card.innerHTML=`
       <div class='parking-name'>${p.nom}</div>
       <div class='avail-block'>
@@ -611,23 +625,9 @@ function renderParking(p,compact=false){
         <div class='transport-group'><div class='transport-header'>Tram</div><div class='line-badges'>${badges(p.tram||[],'tram')}</div></div>
         <div class='transport-group'><div class='transport-header'>Chronobus</div><div class='line-badges'>${badges(p.chronobus||[],'bus')}</div></div>
       </div>
-      <div class='chev-row' style='top:12px;animation-delay:${swipeDelay}'>
-        <span style='color:${swipeColor};animation:ch1a 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch1b 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch1c 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-      </div>
-      <div class='chev-row' style='top:50%;transform:translateY(-50%)'>
-        <span style='color:${swipeColor};animation:ch2a 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch2b 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch2c 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-      </div>
-      <div class='chev-row' style='bottom:12px'>
-        <span style='color:${swipeColor};animation:ch3a 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch3b 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-        <span style='color:${swipeColor};animation:ch3c 4.5s ease-in-out infinite ${swipeDelay}'>›</span>
-      </div>
-      <div class='swipe-arc'  style='--swipe-color:${swipeColor};animation-delay:${swipeDelay}'></div>
-      <div class='swipe-flash' style='--swipe-rgb:${swipeRgb};animation-delay:${swipeDelay}'></div>`;
+      <div class='swipe-scan'></div>
+      <div class='swipe-arc'></div>
+      <div class='swipe-flash'></div>`;
   }
   return card;
 }
@@ -637,9 +637,11 @@ function renderList(parkings){
   root.innerHTML='';
   const available=parkings.filter(p=>(p.nb_tot_place_dispo??0)>0);
   const full=parkings.filter(p=>(p.nb_tot_place_dispo??0)<=0);
+  const n=available.length||1;
   if(available.length){
     const t=document.createElement('div');t.className='section-title';t.textContent=`Disponibles (${available.length})`;root.appendChild(t);
-    available.forEach(p=>root.appendChild(renderParking(p,false)));
+    // Passe l'index et le total pour que chaque card sache quand s'animer
+    available.forEach((p,i)=>root.appendChild(renderParking(p,false,i,n)));
   }
   if(full.length){
     const toggle=document.createElement('button');toggle.className='section-full-toggle';toggle.innerHTML=`Complets (${full.length}) <span class='toggle-arrow'>▾</span>`;
