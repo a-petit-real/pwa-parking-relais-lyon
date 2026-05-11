@@ -539,7 +539,7 @@ async function loadData(silent = false) {
   if (!silent) showLoader();
 
   try {
-    const res = await fetch('/api/parkings-relais');
+    const res = await fetch('/api/Parkings relais');
     if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
 
     const data = await res.json();
