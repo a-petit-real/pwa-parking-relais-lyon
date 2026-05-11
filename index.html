@@ -4,182 +4,365 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Parkings relais TCL – places disponibles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg:#0f131a;
-  --card:#161b24;
-  --header:#0f131a;
-  --border:#1f2430;
+:root {
+  --bg:       #0b0e14;
+  --card:     #13181f;
+  --border:   #1e2430;
+  --text:     #f0f4ff;
+  --muted:    #7a8499;
+  --dim:      #3a4257;
 
-  --text:#ffffff;
-  --muted:#a5adbd;
+  --green:    #22c55e;
+  --orange:   #f59e0b;
+  --red:      #ef4444;
+  --accent:   #e30613;
 
-  --green:#22c55e;
-  --orange:#f59e0b;
-  --red:#ef4444;
+  --gauge-bg: #1e2430;
 
-  --gauge-bg:#2a2f3a;
+  --font:     'DM Sans', system-ui, sans-serif;
+  --mono:     'DM Mono', monospace;
 }
 
-*{box-sizing:border-box}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{
-  margin:0;
-  background:var(--bg);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-  color:var(--text);
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  min-height: 100vh;
 }
 
-/* ===== HEADER ===== */
-.page-header{
-  position:sticky;
-  top:0;
-  z-index:10;
-  background:var(--header);
-  border-bottom:1px solid var(--border);
-  padding:12px 16px;
-  display:flex;
-  align-items:center;
-  gap:12px;
+/* ── HEADER ── */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-/* ✅ LOGO TCL OFFICIEL, INVERSÉ POUR FOND SOMBRE */
-.tcl-logo{
-  height:32px;
-  filter: invert(1);
+.tcl-logo {
+  height: 28px;
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
 }
 
-.page-header h1{
-  font-size:17px;
-  margin:0;
-  font-weight:700;
-  line-height:1.3;
+.header-title {
+  flex: 1;
+  min-width: 0;
 }
 
-.page-header span{
-  font-weight:500;
-  color:var(--muted);
+.header-title h1 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* bouton aide */
-.help-btn{
-  margin-left:auto;
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  border:2px solid var(--muted);
-  color:var(--muted);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:700;
-  cursor:pointer;
+.header-title .subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
 }
 
-/* ===== LOADER ===== */
-.loader{
-  padding:64px 16px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:16px;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.spinner{
-  width:48px;
-  height:48px;
-  border-radius:50%;
-  border:4px solid #2a2f3a;
-  border-top-color:#e30613;
-  animation:spin 1s linear infinite;
+/* Indicateur de fraîcheur des données */
+.freshness {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
 }
 
-@keyframes spin{to{transform:rotate(360deg)}}
+.freshness.fresh  { color: var(--green); }
+.freshness.stale  { color: var(--orange); }
 
-.loader-text{color:var(--muted);font-size:14px}
+.help-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dim);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  transition: border-color .15s, color .15s;
+}
+.help-btn:hover { border-color: var(--text); color: var(--text); }
 
-/* ===== LIST ===== */
-#app{display:none;padding:16px}
-
-.parking-card{
-  max-width:380px;
-  background:var(--card);
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:16px;
+/* ── LOADER ── */
+#loader {
+  padding: 80px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
 
-.parking-name{
-  font-size:14px;
-  color:var(--muted);
-  margin-bottom:12px;
-  font-weight:600;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-text { color: var(--muted); font-size: 13px; }
+
+/* ── ERREUR ── */
+#error {
+  display: none;
+  margin: 32px 16px;
+  background: #1a0e0e;
+  border: 1px solid #3d1515;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
 }
 
-.availability{display:flex;align-items:center;gap:12px}
+#error .error-icon { font-size: 28px; margin-bottom: 8px; }
+#error .error-title { font-size: 15px; font-weight: 600; color: var(--red); margin-bottom: 6px; }
+#error .error-msg { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
 
-.count{font-size:32px;font-weight:700}
-.label{font-size:13px;color:var(--muted)}
-
-.fill-gauge{display:flex;gap:4px}
-.fill-gauge span{
-  width:10px;height:14px;border-radius:3px;background:var(--gauge-bg)
+.retry-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity .15s;
 }
-.fill-1 span:nth-child(-n+1){background:var(--red)}
-.fill-2 span:nth-child(-n+2){background:var(--orange)}
-.fill-3 span:nth-child(-n+3){background:var(--green)}
-.fill-4 span:nth-child(-n+4){background:var(--green)}
+.retry-btn:hover { opacity: .85; }
 
-.transport-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  margin-top:16px;
-  text-align:center;
-  font-size:13px;
-  color:var(--muted)
-}
-
-.badge{
-  width:30px;height:30px;border-radius:50%;
-  border:2.5px solid #e2e8f0;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;color:#fff
+/* ── LISTE ── */
+#app {
+  display: none;
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-/* ===== LEGEND ===== */
-.legend{
-  padding:8px 16px 16px;
-  font-size:12px;
-  color:var(--muted);
-  text-align:center;
+.parking-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color .15s;
+}
+.parking-card:hover { border-color: var(--dim); }
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-/* ===== MODAL ===== */
-.modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  z-index:20;
+.parking-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
 }
 
-.modal-content{
-  background:#161b24;
-  margin:80px auto;
-  padding:20px;
-  max-width:400px;
-  border-radius:12px;
+/* ── DISPONIBILITÉ ── */
+.avail-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
-.modal h2{margin-top:0;font-size:18px}
-.modal p{font-size:14px;color:var(--muted);line-height:1.5}
-
-.close{text-align:right}
-.close button{
-  background:none;border:none;color:#fff;font-weight:600;cursor:pointer
+.count-wrap {
+  flex-shrink: 0;
 }
+
+.count {
+  font-size: 36px;
+  font-weight: 700;
+  font-family: var(--mono);
+  line-height: 1;
+}
+
+.count.color-green  { color: var(--green); }
+.count.color-orange { color: var(--orange); }
+.count.color-red    { color: var(--red); }
+.count.color-empty  { color: var(--muted); }
+
+.avail-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.avail-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* Barre de progression continue */
+.progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gauge-bg);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+
+.progress-fill.color-green  { background: var(--green); }
+.progress-fill.color-orange { background: var(--orange); }
+.progress-fill.color-red    { background: var(--red); }
+.progress-fill.color-empty  { background: var(--dim); }
+
+.progress-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+/* ── TRANSPORT ── */
+.transport-section {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex;
+  gap: 16px;
+}
+
+.transport-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.transport-header {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.line-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.badge {
+  height: 22px;
+  min-width: 22px;
+  padding: 0 5px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  border: 1.5px solid var(--dim);
+  color: var(--muted);
+}
+
+.badge.metro  { background: #1a1f3a; border-color: #3b4fa8; color: #99aaee; }
+.badge.tram   { background: #1a2e1a; border-color: #2d6b2d; color: #6bc96b; }
+.badge.bus    { background: #2a1e0e; border-color: #7a4a10; color: #c98830; }
+.badge.none   { opacity: .35; }
+
+/* ── FOOTER ── */
+.page-footer {
+  padding: 8px 16px 24px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── MODAL ── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 20;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal.open { display: flex; }
+
+.modal-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.modal-content h2 { font-size: 17px; margin-bottom: 12px; }
+
+.modal-content p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.modal-close {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.modal-close button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.modal-close button:hover { background: var(--border); }
 </style>
 </head>
 
@@ -190,90 +373,221 @@ body{
     class="tcl-logo"
     src="https://www.tcl.fr/themes/custom/sytral_theme/img/logo/tcl-sytral.svg"
     alt="TCL Sytral"
+    onerror="this.style.display='none'"
   />
-  <h1>Parkings relais TCL <span>– places disponibles</span></h1>
-  <div class="help-btn" onclick="openHelp()">?</div>
+  <div class="header-title">
+    <h1>Parkings relais TCL</h1>
+    <div class="subtitle">Places disponibles en temps réel</div>
+  </div>
+  <div class="header-actions">
+    <span class="freshness" id="freshness"></span>
+    <button class="help-btn" onclick="openHelp()" aria-label="Aide">?</button>
+  </div>
 </header>
 
-<div id="loader" class="loader">
+<div id="loader">
   <div class="spinner"></div>
   <div class="loader-text">Chargement des disponibilités…</div>
 </div>
 
-<div id="app"></div>
-
-<div class="legend">
-  <strong>Légende :</strong> M = Métro · T = Tram · B = Bus
+<div id="error">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Données indisponibles</div>
+  <div class="error-msg" id="error-msg">
+    Impossible de charger les disponibilités.<br>Vérifiez votre connexion ou réessayez.
+  </div>
+  <button class="retry-btn" onclick="loadData()">Réessayer</button>
 </div>
 
-<div id="helpModal" class="modal">
+<div id="app"></div>
+
+<div class="page-footer">
+  Données : Grand Lyon open data · Actualisation toutes les 60 s
+</div>
+
+<div id="helpModal" class="modal" onclick="handleModalClick(event)">
   <div class="modal-content">
     <h2>À propos de ce service</h2>
     <p>
       Cette application affiche en temps réel les places disponibles
-      dans les parkings relais du réseau TCL.
+      dans les parkings relais du réseau TCL de Lyon.
     </p>
     <p>
-      Le nombre correspond aux places actuellement disponibles.
-      La jauge indique le niveau de remplissage du parking.
+      La barre de couleur indique le taux de remplissage :
+      <strong style="color:var(--green)">vert</strong> = disponible,
+      <strong style="color:var(--orange)">orange</strong> = se remplit,
+      <strong style="color:var(--red)">rouge</strong> = quasi complet.
     </p>
     <p>
-      Les colonnes M, T et B indiquent les lignes de métro, tram et bus accessibles.
+      Les données proviennent de l'open data du Grand Lyon
+      et sont rafraîchies toutes les 60 secondes.
     </p>
-    <div class="close">
+    <div class="modal-close">
       <button onclick="closeHelp()">Fermer</button>
     </div>
   </div>
 </div>
 
 <script>
-function openHelp(){document.getElementById("helpModal").style.display="block"}
-function closeHelp(){document.getElementById("helpModal").style.display="none"}
+// ── Utilitaires ──────────────────────────────────────────────────────────────
 
-fetch("/api/parkings-relais")
-.then(r=>r.json())
-.then(data=>{
-  let parkings=data.values||[];
-  parkings=parkings.sort((a,b)=>
-    a.nom==="Mermoz Pinel"?-1:b.nom==="Mermoz Pinel"?1:0
-  );
+function colorFromRatio(ratio) {
+  if (ratio <= 0)    return 'empty';
+  if (ratio <= 0.25) return 'red';
+  if (ratio <= 0.50) return 'orange';
+  return 'green';
+}
 
-  document.getElementById("loader").style.display="none";
-  const root=document.getElementById("app");
-  root.style.display="block";
+function formatFreshness(date) {
+  const secs = Math.round((Date.now() - date) / 1000);
+  if (secs < 5)  return 'À l\'instant';
+  if (secs < 60) return `${secs}s`;
+  return `${Math.round(secs/60)} min`;
+}
 
-  parkings.forEach(p=>{
-    const ratio=p.nb_tot_place_dispo/p.capacite;
-    let level=0;
-    if(ratio>0.75)level=4;
-    else if(ratio>0.5)level=3;
-    else if(ratio>0.25)level=2;
-    else if(ratio>0)level=1;
+// ── Gestion des vues ─────────────────────────────────────────────────────────
 
-    const lines=p.transport_lines||{};
+function showLoader()  {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('error').style.display  = 'none';
+  document.getElementById('app').style.display    = 'none';
+}
 
-    const card=document.createElement("div");
-    card.className="parking-card";
-    card.innerHTML=`
-      <div class="parking-name">${p.nom}</div>
-      <div class="availability">
-        <div>
-          <div class="count">${p.nb_tot_place_dispo}</div>
-          <div class="label">places disponibles</div>
-        </div>
-        <div class="fill-gauge fill-${level}">
-          <span></span><span></span><span></span><span></span>
-        </div>
+function showError(msg) {
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('error').style.display  = 'block';
+  document.getElementById('app').style.display    = 'none';
+  if (msg) document.getElementById('error-msg').textContent = msg;
+}
+
+function showApp() {
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('error').style.display  = 'none';
+  document.getElementById('app').style.display    = 'block';
+}
+
+// ── Rendu des cartes ─────────────────────────────────────────────────────────
+
+function renderParking(p) {
+  const dispo    = p.nb_tot_place_dispo ?? 0;
+  const capacite = p.capacite ?? 0;
+  const ratio    = capacite > 0 ? dispo / capacite : 0;
+  const color    = colorFromRatio(ratio);
+  const pct      = capacite > 0 ? Math.round(ratio * 100) : 0;
+
+  const lines = p.transport_lines || {};
+  const metro = lines.metro || [];
+  const tram  = lines.tram  || [];
+  const bus   = lines.bus   || [];
+
+  function badges(arr, type) {
+    if (!arr.length) return `<span class="badge none">—</span>`;
+    return arr.map(l => `<span class="badge ${type}">${l}</span>`).join('');
+  }
+
+  const card = document.createElement('div');
+  card.className = 'parking-card';
+  card.innerHTML = `
+    <div class="parking-name">${p.nom}</div>
+    <div class="avail-block">
+      <div class="count-wrap">
+        <div class="count color-${color}">${dispo}</div>
       </div>
-      <div class="transport-grid">
-        <div><div class="badge" title="Métro">M</div>${lines.metro?lines.metro.join("<br>"):"—"}</div>
-        <div><div class="badge" title="Tram">T</div>${lines.tram?lines.tram.join("<br>"):"—"}</div>
-        <div><div class="badge" title="Bus">B</div>${lines.bus?lines.bus.join("<br>"):"—"}</div>
+      <div class="avail-meta">
+        <div class="avail-label">places disponibles / ${capacite}</div>
+        <div class="progress-bar">
+          <div class="progress-fill color-${color}" style="width:${pct}%"></div>
+        </div>
+        <div class="progress-label">${pct}% disponible</div>
       </div>
-    `;
-    root.appendChild(card);
-  });
-});
+    </div>
+    <div class="transport-section">
+      <div class="transport-group">
+        <div class="transport-header">Métro</div>
+        <div class="line-badges">${badges(metro, 'metro')}</div>
+      </div>
+      <div class="transport-group">
+        <div class="transport-header">Tram</div>
+        <div class="line-badges">${badges(tram, 'tram')}</div>
+      </div>
+      <div class="transport-group">
+        <div class="transport-header">Bus</div>
+        <div class="line-badges">${badges(bus, 'bus')}</div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+// ── Fraîcheur des données ────────────────────────────────────────────────────
+
+let lastFetch = null;
+let freshnessTimer = null;
+
+function updateFreshness() {
+  if (!lastFetch) return;
+  const el   = document.getElementById('freshness');
+  const secs = Math.round((Date.now() - lastFetch) / 1000);
+  el.textContent = formatFreshness(lastFetch);
+  el.className   = 'freshness ' + (secs < 90 ? 'fresh' : 'stale');
+}
+
+// ── Chargement des données ───────────────────────────────────────────────────
+
+let refreshInterval = null;
+
+async function loadData(silent = false) {
+  if (!silent) showLoader();
+
+  try {
+    const res = await fetch('/api/parkings-relais');
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const parkings = (data.values || [])
+      .slice()
+      .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+
+    const root = document.getElementById('app');
+    root.innerHTML = '';
+    parkings.forEach(p => root.appendChild(renderParking(p)));
+
+    lastFetch = Date.now();
+    updateFreshness();
+    showApp();
+
+  } catch (err) {
+    if (!silent) {
+      showError(err.message || 'Impossible de charger les disponibilités.');
+    }
+    console.error('[parking]', err);
+  }
+}
+
+// ── Auto-refresh toutes les 60s ──────────────────────────────────────────────
+
+function startAutoRefresh() {
+  clearInterval(refreshInterval);
+  refreshInterval = setInterval(() => loadData(true), 60_000);
+}
+
+// Mettre à jour l'affichage de fraîcheur chaque seconde
+setInterval(updateFreshness, 1_000);
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+
+function openHelp()  { document.getElementById('helpModal').classList.add('open'); }
+function closeHelp() { document.getElementById('helpModal').classList.remove('open'); }
+function handleModalClick(e) {
+  if (e.target === document.getElementById('helpModal')) closeHelp();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+loadData();
+startAutoRefresh();
 </script>
 
 </body>
